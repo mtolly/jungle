@@ -38,11 +38,13 @@ var bridges = 0;
 // All square-sized objects which can change state.
 var entities =
   [ { sprite: 'tile'
+    , type:   'floor'
     , x:      12 * 32
     , y:      8 * 32
     , letter: 'T'
     }
   , { sprite: 'player'
+    , type:   'body'
     , x:      7 * 32
     , y:      4 * 32
     , facing: 'down'
@@ -112,7 +114,6 @@ $(document).ready(function(){
     var arrows = 'Keys: ' + Object.keys(keys_down);
     ctx.fillText(frameText, 10, 400);
     ctx.fillText(arrows, 10, 415);
-    ctx.fillText(occupied(), 10, 430);
   }
   
   function draw_entities() {
@@ -122,10 +123,12 @@ $(document).ready(function(){
     }
   }
   
-  // row and column should either be whole numbers, or ??.5.
+  // row and column should be multiples of 0.5.
   function is_occupied(row, column) {
+    return !walkable_bg(row, column);
     for (var i = 0; i < entities.length; i++) {
       var entity = entities[i];
+      if (entity.type == 'floor') continue;
       var x = entity.x;
       var y = entity.y;
       var cx = column * 32;
@@ -136,28 +139,47 @@ $(document).ready(function(){
         && ry - 32 < y
         && y < ry + 32
         ) {
+        console.log([row, column, x, y]);
         return true;
       }
     }
-    return false;
+    console.log('foo');
+    return !walkable_bg(row, column);
   }
   
-  // returns [r, c], where r and c are multiples of 0.5.
+  // row and column should be multiples of 0.5.
+  function walkable_bg(row, column) {
+    if (row != Math.floor(row)) {
+      return walkable_bg(row - 0.5, column) && walkable_bg(row + 0.5, column);
+    }
+    if (column != Math.floor(column)) {
+      return walkable_bg(row, column - 0.5) && walkable_bg(row, column + 0.5);
+    }
+    if (scenery[row][column] == 2) return false;
+    if (scenery[row][column] == 3) return false;
+    return true;
+  }
+  
+  // returns [r, c] or null, where r and c are multiples of 0.5.
   function get_square(entity) {
     var x = entity.x;
     var y = entity.y;
+    if (x % 16 != 0 || y % 16 != 0) {
+      return null;
+    }
+    return [y / 32, x / 32];
   }
   
-  function occupied() {
-    var occ = [];
-    for (r = 0; r < scenery.length; r++) {
-      for (c = 0; c < scenery[0].length; c++) {
-        if (is_occupied(r, c)) {
-          occ.push('(r' + r + ',c' + c + ')')
-        }
-      }
+  function get_next_square(entity, direction) {
+    var sq = get_square(entity);
+    var r = sq[0];
+    var c = sq[1];
+    switch (direction) {
+      case 'left': return [r, c - 0.5];
+      case 'right': return [r, c + 0.5];
+      case 'up': return [r - 0.5, c];
+      case 'down': return [r + 0.5, c];
     }
-    return occ;
   }
   
   function bump(entity) {
@@ -185,14 +207,19 @@ $(document).ready(function(){
   }
   
   function can_move(entity, direction) {
-    
+    var next_sq = get_next_square(entity, direction);
+    return !is_occupied(next_sq[0], next_sq[1]);
   }
   
   function check_player(entity) {
     if (entity.state == 'stopped') {
       var kd = Object.keys(keys_down);
       if (kd.length) {
-        start_moving(entity, kd[0]);
+        var dir = kd[0];
+        entity.facing = dir;
+        if (can_move(entity, dir)) {
+          start_moving(entity, dir);
+        }
       }
     }
     else {
