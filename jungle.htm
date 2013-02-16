@@ -121,6 +121,26 @@ $(document).ready(function(){
     }
   }
   
+  // row and column should either be whole numbers, or ??.5.
+  function is_occupied(row, column) {
+    for (var i = 0; i < entities.length; i++) {
+      var entity = entities[i];
+      var x = entity.x;
+      var y = entity.y;
+      var cx = column * 32;
+      var ry = row * 32;
+      if
+        (  rx - 32 < x
+        && x < rx + 32
+        && cy - 32 < y
+        && y < cy + 32
+        ) {
+        return true;
+      }
+    }
+    return false;
+  }
+  
   function start_moving(entity, direction) {
     entity.facing = direction;
   }
