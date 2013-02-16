@@ -111,9 +111,9 @@ $(document).ready(function(){
   function draw_debug() {
     ctx.fillStyle = 'white';
     var frameText = Math.floor(frame / 60) + ' | ' + (frame % 60);
-    var arrows = 'Keys: ' + Object.keys(keys_down);
+    //var arrows = 'Keys: ' + Object.keys(keys_down);
     ctx.fillText(frameText, 10, 400);
-    ctx.fillText(arrows, 10, 415);
+    //ctx.fillText(arrows, 10, 415);
   }
   
   function draw_entities() {
@@ -124,9 +124,9 @@ $(document).ready(function(){
   }
   
   // row and column should be multiples of 0.5.
-  function is_occupied(row, column) {
-    return !walkable_bg(row, column);
+  function is_occupied(row, column, index) {
     for (var i = 0; i < entities.length; i++) {
+      if (i == index) continue;
       var entity = entities[i];
       if (entity.type == 'floor') continue;
       var x = entity.x;
@@ -139,11 +139,9 @@ $(document).ready(function(){
         && ry - 32 < y
         && y < ry + 32
         ) {
-        console.log([row, column, x, y]);
         return true;
       }
     }
-    console.log('foo');
     return !walkable_bg(row, column);
   }
   
@@ -197,45 +195,38 @@ $(document).ready(function(){
     bump(entity);
   }
   
-  function check_movement(entity) {
+  // Handles updating the moving/stopped state, and applying movement to
+  // position.
+  function check_movement(entity, index) {
     if (entity.state == 'moving') {
       bump(entity);
       if (entity.x % 16 == 0 && entity.y % 16 == 0) {
         entity.state = 'stopped';
       }
     }
-  }
-  
-  function can_move(entity, direction) {
-    var next_sq = get_next_square(entity, direction);
-    return !is_occupied(next_sq[0], next_sq[1]);
-  }
-  
-  function check_player(entity) {
-    if (entity.state == 'stopped') {
-      var kd = Object.keys(keys_down);
-      if (kd.length) {
-        var dir = kd[0];
-        entity.facing = dir;
-        if (can_move(entity, dir)) {
-          start_moving(entity, dir);
+    else if (entity.state == 'stopped') {
+      if (entity.sprite == 'player') {
+        var kd = Object.keys(keys_down);
+        if (kd.length) {
+          var dir = kd[0];
+          entity.facing = dir;
+          if (can_move(entity, dir, index)) {
+            start_moving(entity, dir);
+          }
         }
       }
     }
-    else {
-      check_movement(entity);
-    }
+  }
+  
+  function can_move(entity, direction, index) {
+    var next_sq = get_next_square(entity, direction);
+    return !is_occupied(next_sq[0], next_sq[1], index);
   }
   
   function update_entities() {
     for (var i = 0; i < entities.length; i++) {
       var entity = entities[i];
-      if (entity.sprite == 'player') {
-        check_player(entity);
-      }
-      else {
-        check_movement(entity);
-      }
+      check_movement(entity, i);
     }
   }
   
