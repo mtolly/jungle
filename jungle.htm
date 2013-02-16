@@ -1,0 +1,222 @@
+<!-- 15x12 grid, each square 32x32 pixels -->
+
+<html>
+
+<head>
+<script src="http://ajax.googleapis.com/ajax/libs/jquery/1.7.1/jquery.min.js" type="text/javascript"></script>
+</head>
+
+<body>
+<canvas id="canvas" width="640" height="480"></canvas>
+<script type="text/javascript">
+
+// The unchanging background of the world.
+// 0: bare
+// 1: grass
+// 2: water
+// 3: tree
+var scenery =
+  [ [ 3, 3, 3, 3, 3, 3, 3, 3, 2, 3, 3, 3, 3, 3, 3 ]
+  , [ 3, 3, 3, 3, 3, 3, 2, 2, 2, 0, 0, 0, 3, 3, 3 ]
+  , [ 3, 3, 3, 3, 3, 2, 2, 2, 0, 0, 0, 0, 0, 3, 3 ]
+  , [ 3, 3, 3, 3, 2, 2, 0, 0, 0, 0, 0, 3, 3, 3, 3 ]
+  , [ 3, 3, 3, 3, 2, 0, 0, 0, 0, 0, 0, 0, 0, 3, 3 ]
+  , [ 3, 3, 3, 3, 2, 0, 0, 0, 0, 0, 0, 0, 0, 0, 3 ]
+  , [ 3, 3, 3, 3, 2, 2, 2, 0, 0, 0, 0, 0, 0, 0, 3 ]
+  , [ 3, 3, 3, 3, 2, 2, 2, 0, 0, 0, 0, 0, 0, 0, 3 ]
+  , [ 3, 3, 3, 3, 3, 2, 2, 0, 0, 3, 3, 3, 0, 3, 3 ]
+  , [ 3, 3, 3, 3, 3, 2, 2, 2, 2, 2, 2, 3, 3, 3, 3 ]
+  , [ 3, 3, 3, 2, 2, 2, 2, 2, 2, 2, 2, 2, 3, 3, 3 ]
+  , [ 3, 3, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 3 ]
+  ];
+
+var word = 'FIRST';
+var letters = '';
+var apples = 0;
+var bridges = 0;
+
+// All square-sized objects which can change state.
+var entities =
+  [ { sprite: 'tile'
+    , x:      12 * 32
+    , y:      8 * 32
+    , letter: 'T'
+    }
+  , { sprite: 'player'
+    , x:      7 * 32
+    , y:      4 * 32
+    , facing: 'down'
+    , state:  'stopped'
+    }
+  ];
+
+function makeImage(src) {
+  var img = new Image();
+  img.src = src;
+  return img;
+}
+
+images = {};
+
+function imageURL(entity) {
+  switch (entity.sprite) {
+    case 'tile':
+      return 'img/tile/' + entity.letter + '.png';
+    case 'player':
+      return 'img/player/' + entity.facing + '.png';
+  }
+}
+
+function getImage(entity) {
+  var url = imageURL(entity);
+  if (typeof images[url] == 'undefined') {
+    var img = makeImage(url);
+    images[url] = img;
+    return img;
+  }
+  return images[url];
+}
+
+var frame = 0;
+var width = 640;
+var height = 480;
+
+var key_up = false;
+var key_down = false;
+var key_left = false;
+var key_right = false;
+
+$(document).ready(function(){
+
+  var canvas = $('#canvas')[0];
+  var ctx = canvas.getContext('2d');
+  
+  function draw_scenery() {
+    ctx.fillStyle = 'black';
+    ctx.fillRect(0, 0, width, height);
+    
+    var x, y, r, c;
+    y = 0;
+    for (r = 0; r < scenery.length; r++) {
+      x = 0;
+      for (c = 0; c < scenery[0].length; c++) {
+        switch (scenery[r][c]) {
+          case 0:
+            ctx.fillStyle = '#ffffcc';
+            break;
+          case 1:
+            ctx.fillStyle = '#00ff00';
+            break;
+          case 2:
+            ctx.fillStyle = '#0033ff';
+            break;
+          case 3:
+            ctx.fillStyle = '#006600';
+            break;
+          default:
+        }
+        ctx.fillRect(x, y, 32, 32);
+        x += 32;
+      }
+      y += 32;
+    }
+  }
+  
+  function draw_debug() {
+    ctx.fillStyle = 'white';
+    var frameText = Math.floor(frame / 60) + ' | ' + (frame % 60);
+    var arrows = (key_left  ? 'L' : 'l') +
+                 (key_up    ? 'U' : 'u') +
+                 (key_right ? 'R' : 'r') +
+                 (key_down  ? 'D' : 'd');
+    ctx.fillText(frameText, 10, 400);
+    ctx.fillText(arrows, 10, 415);
+  }
+  
+  function draw_entities() {
+    for (var i = 0; i < entities.length; i++) {
+      var entity = entities[i];
+      ctx.drawImage(getImage(entity), entity.x, entity.y);
+    }
+  }
+  
+  function start_moving(entity, direction) {
+    entity.facing = direction;
+  }
+  
+  function update_entities() {
+    for (var i = 0; i < entities.length; i++) {
+      var entity = entities[i];
+      switch (entity.sprite) {
+        case 'player':
+          if (entity === 'stopped') {
+            if (key_left) {
+              
+            }
+            else if (key_up) {
+              
+            }
+            else if (key_down) {
+              
+            }
+            else if (key_right) {
+              
+            }
+          }
+          break;
+      }
+    }
+  }
+  
+  function process_key(code, is_down) {
+    switch (code) {
+      case 37:
+        key_left = is_down;
+        break;
+      case 38:
+        key_up = is_down;
+        break;
+      case 39:
+        key_right = is_down;
+        break;
+      case 40:
+        key_down = is_down;
+        break;
+    }
+  }
+  
+  $(document).keydown(function(evt) {
+    process_key(evt.which, true);
+  });
+  
+  $(document).keyup(function(evt) {
+    process_key(evt.which, false);
+  });
+  
+  window.requestAnimFrame = (function(){
+  return  window.requestAnimationFrame       ||
+          window.webkitRequestAnimationFrame ||
+          window.mozRequestAnimationFrame    ||
+          window.oRequestAnimationFrame      ||
+          window.msRequestAnimationFrame     ||
+          function( callback ){
+            window.setTimeout(callback, 1000 / 60);
+          };
+  })();
+  
+  (function animloop(){
+    requestAnimFrame(animloop);
+    frame += 1;
+    draw_scenery();
+    draw_debug();
+    draw_entities();
+    //update_entities();
+  })();
+
+})
+
+</script>
+</body>
+
+</html>
+
