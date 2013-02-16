@@ -112,6 +112,7 @@ $(document).ready(function(){
     var arrows = 'Keys: ' + Object.keys(keys_down);
     ctx.fillText(frameText, 10, 400);
     ctx.fillText(arrows, 10, 415);
+    ctx.fillText(occupied(), 10, 430);
   }
   
   function draw_entities() {
@@ -130,10 +131,10 @@ $(document).ready(function(){
       var cx = column * 32;
       var ry = row * 32;
       if
-        (  rx - 32 < x
-        && x < rx + 32
-        && cy - 32 < y
-        && y < cy + 32
+        (  cx - 32 < x
+        && x < cx + 32
+        && ry - 32 < y
+        && y < ry + 32
         ) {
         return true;
       }
@@ -141,21 +142,72 @@ $(document).ready(function(){
     return false;
   }
   
+  // returns [r, c], where r and c are multiples of 0.5.
+  function get_square(entity) {
+    var x = entity.x;
+    var y = entity.y;
+  }
+  
+  function occupied() {
+    var occ = [];
+    for (r = 0; r < scenery.length; r++) {
+      for (c = 0; c < scenery[0].length; c++) {
+        if (is_occupied(r, c)) {
+          occ.push('(r' + r + ',c' + c + ')')
+        }
+      }
+    }
+    return occ;
+  }
+  
+  function bump(entity) {
+    switch (entity.facing) {
+      case 'left':  entity.x -= 2; break;
+      case 'right': entity.x += 2; break;
+      case 'up':    entity.y -= 2; break;
+      case 'down':  entity.y += 2; break;
+    }
+  }
+  
   function start_moving(entity, direction) {
     entity.facing = direction;
+    entity.state = 'moving';
+    bump(entity);
   }
   
   function check_movement(entity) {
+    if (entity.state == 'moving') {
+      bump(entity);
+      if (entity.x % 16 == 0 && entity.y % 16 == 0) {
+        entity.state = 'stopped';
+      }
+    }
+  }
+  
+  function can_move(entity, direction) {
+    
+  }
+  
+  function check_player(entity) {
+    if (entity.state == 'stopped') {
+      var kd = Object.keys(keys_down);
+      if (kd.length) {
+        start_moving(entity, kd[0]);
+      }
+    }
+    else {
+      check_movement(entity);
+    }
   }
   
   function update_entities() {
     for (var i = 0; i < entities.length; i++) {
       var entity = entities[i];
-      switch (entity.sprite) {
-        case 'player':
-          if (entity === 'stopped') {
-          }
-          break;
+      if (entity.sprite == 'player') {
+        check_player(entity);
+      }
+      else {
+        check_movement(entity);
       }
     }
   }
@@ -195,7 +247,7 @@ $(document).ready(function(){
     draw_scenery();
     draw_debug();
     draw_entities();
-    //update_entities();
+    update_entities();
   })();
 
 })
