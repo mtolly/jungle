@@ -50,6 +50,13 @@ var entities =
     , facing: 'down'
     , state:  'stopped'
     }
+  , { sprite: 'dartdemon'
+    , type:   'body'
+    , x:      8 * 32
+    , y:      3 * 32
+    , facing: 'down'
+    , state:  'stopped'
+    }
   ];
 
 function makeImage(src) {
@@ -66,6 +73,8 @@ function imageURL(entity) {
       return 'img/tile/' + entity.letter + '.png';
     case 'player':
       return 'img/player/' + entity.facing + '.png';
+    case 'dartdemon':
+      return 'img/dartdemon/' + entity.facing + '.png';
   }
 }
 
