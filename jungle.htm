@@ -116,6 +116,9 @@ var keys_down = {};
 // indices of floor entities which will be deleted on end of frame
 var to_delete = {};
 
+// 'playing', 'dead', 'complete'
+var status = 'playing';
+
 $(document).ready(function(){
 
   var canvas = $('#canvas')[0];
@@ -145,7 +148,10 @@ $(document).ready(function(){
     ctx.fillText(frameText, 10, 400);
     ctx.fillText('Letters: ' + letters, 10, 415);
     ctx.fillText('Target word: ' + word, 10, 430);
-    if (letters == word) {
+    if (status == 'dead') {
+      ctx.fillText('Dead...', 10, 445);
+    }
+    else if (letters == word) {
       ctx.fillText('Victory!', 10, 445);
     }
     else if (word.indexOf(letters) === 0) {
@@ -238,13 +244,25 @@ $(document).ready(function(){
     bump(entity);
   }
   
+  function kill() {
+    for (var i = 0; i < body_entities.length; i++) {
+      body_entities[i].state = 'frozen';
+    }
+    status = 'dead';
+  }
+  
   function check_pickup(x, y) {
     for (var i = 0; i < floor_entities.length; i++) {
       var entity = floor_entities[i];
       if (entity.x == x && entity.y == y) {
         to_delete[i] = true;
         switch (entity.sprite) {
-          case 'tile': letters += entity.letter; break;
+          case 'tile':
+            letters += entity.letter;
+            if (letters == word) {
+              status = 'complete';
+            }
+            break;
         }
       }
     }
@@ -303,6 +321,7 @@ $(document).ready(function(){
       case 38: keys_down['up']    = true; break;
       case 39: keys_down['right'] = true; break;
       case 40: keys_down['down']  = true; break;
+      case 75: kill(); break; // K
     }
   });
   
