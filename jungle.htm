@@ -81,10 +81,7 @@ var frame = 0;
 var width = 640;
 var height = 480;
 
-var key_up = false;
-var key_down = false;
-var key_left = false;
-var key_right = false;
+var keys_down = {};
 
 $(document).ready(function(){
 
@@ -95,40 +92,24 @@ $(document).ready(function(){
     ctx.fillStyle = 'black';
     ctx.fillRect(0, 0, width, height);
     
-    var x, y, r, c;
-    y = 0;
+    var r, c;
     for (r = 0; r < scenery.length; r++) {
-      x = 0;
       for (c = 0; c < scenery[0].length; c++) {
         switch (scenery[r][c]) {
-          case 0:
-            ctx.fillStyle = '#ffffcc';
-            break;
-          case 1:
-            ctx.fillStyle = '#00ff00';
-            break;
-          case 2:
-            ctx.fillStyle = '#0033ff';
-            break;
-          case 3:
-            ctx.fillStyle = '#006600';
-            break;
-          default:
+          case 0: ctx.fillStyle = '#ffffcc'; break;
+          case 1: ctx.fillStyle = '#00ff00'; break;
+          case 2: ctx.fillStyle = '#0033ff'; break;
+          case 3: ctx.fillStyle = '#006600'; break;
         }
-        ctx.fillRect(x, y, 32, 32);
-        x += 32;
+        ctx.fillRect(c * 32, r * 32, 32, 32);
       }
-      y += 32;
     }
   }
   
   function draw_debug() {
     ctx.fillStyle = 'white';
     var frameText = Math.floor(frame / 60) + ' | ' + (frame % 60);
-    var arrows = (key_left  ? 'L' : 'l') +
-                 (key_up    ? 'U' : 'u') +
-                 (key_right ? 'R' : 'r') +
-                 (key_down  ? 'D' : 'd');
+    var arrows = 'Keys: ' + Object.keys(keys_down);
     ctx.fillText(frameText, 10, 400);
     ctx.fillText(arrows, 10, 415);
   }
@@ -144,53 +125,37 @@ $(document).ready(function(){
     entity.facing = direction;
   }
   
+  function check_movement(entity) {
+  }
+  
   function update_entities() {
     for (var i = 0; i < entities.length; i++) {
       var entity = entities[i];
       switch (entity.sprite) {
         case 'player':
           if (entity === 'stopped') {
-            if (key_left) {
-              
-            }
-            else if (key_up) {
-              
-            }
-            else if (key_down) {
-              
-            }
-            else if (key_right) {
-              
-            }
           }
           break;
       }
     }
   }
   
-  function process_key(code, is_down) {
-    switch (code) {
-      case 37:
-        key_left = is_down;
-        break;
-      case 38:
-        key_up = is_down;
-        break;
-      case 39:
-        key_right = is_down;
-        break;
-      case 40:
-        key_down = is_down;
-        break;
-    }
-  }
-  
   $(document).keydown(function(evt) {
-    process_key(evt.which, true);
+    switch (evt.which) {
+      case 37: keys_down['left']  = true; break;
+      case 38: keys_down['up']    = true; break;
+      case 39: keys_down['right'] = true; break;
+      case 40: keys_down['down']  = true; break;
+    }
   });
   
   $(document).keyup(function(evt) {
-    process_key(evt.which, false);
+    switch (evt.which) {
+      case 37: delete keys_down['left'];  break;
+      case 38: delete keys_down['up'];    break;
+      case 39: delete keys_down['right']; break;
+      case 40: delete keys_down['down'];  break;
+    }
   });
   
   window.requestAnimFrame = (function(){
