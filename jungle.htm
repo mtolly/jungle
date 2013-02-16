@@ -144,6 +144,16 @@ $(document).ready(function(){
     var frameText = Math.floor(frame / 60) + ' | ' + (frame % 60);
     ctx.fillText(frameText, 10, 400);
     ctx.fillText('Letters: ' + letters, 10, 415);
+    ctx.fillText('Target word: ' + word, 10, 430);
+    if (letters == word) {
+      ctx.fillText('Victory!', 10, 445);
+    }
+    else if (word.indexOf(letters) === 0) {
+      ctx.fillText('Playing', 10, 445);
+    }
+    else {
+      ctx.fillText('Failure...', 10, 445);
+    }
   }
   
   function draw_entities() {
