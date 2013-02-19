@@ -9,6 +9,8 @@
 <script type="text/javascript">
 
 var frame         = 0;
+var anim_frame    = 0; // 0 -> 1 -> 2 -> 3 -> 0, every 5th frame
+var anim_subframe = 0; // 0 -> 1 -> 2 -> 3 -> 4 -> 0, every frame
 var canvas_width  = 640;
 var canvas_height = 480;
 
@@ -80,7 +82,6 @@ function makeImage(src) {
 images = {};
 
 function imageURL(entity) {
-  var anim_frame = Math.floor(frame / 5) % 4;
   switch (entity.sprite) {
     case 'tile':
       return 'img/tile/' + entity.letter + '.png';
@@ -242,13 +243,6 @@ $(document).ready(function(){
     bump(entity);
   }
   
-  function kill() {
-    for (var i = 0; i < body_entities.length; i++) {
-      body_entities[i].state = 'frozen';
-    }
-    status = 'dead';
-  }
-  
   function check_pickup(x, y) {
     for (var i = 0; i < floor_entities.length; i++) {
       var entity = floor_entities[i];
@@ -347,7 +341,6 @@ $(document).ready(function(){
       case 38: keys_down['up']    = true; break;
       case 39: keys_down['right'] = true; break;
       case 40: keys_down['down']  = true; break;
-      // case 75: kill(); break; // K
     }
   });
   
@@ -373,7 +366,12 @@ $(document).ready(function(){
   
   (function animloop(){
     requestAnimFrame(animloop);
-    frame += 1;
+    frame++;
+    anim_subframe++;
+    if (anim_subframe == 5) {
+      anim_subframe = 0;
+      anim_frame = (anim_frame + 1) % 4;
+    }
     draw_scenery();
     draw_debug();
     draw_entities();
