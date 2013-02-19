@@ -135,7 +135,7 @@ $(document).ready(function(){
           case 2: ctx.fillStyle = '#0033ff'; break;
           case 3: ctx.fillStyle = '#006600'; break;
         }
-        ctx.fillRect(c * square_width, r * square_height, square_width, square_height);
+        ctx.fillRect(c * square_width + 10, r * square_height + 10, square_width, square_height);
       }
     }
   }
@@ -143,31 +143,31 @@ $(document).ready(function(){
   function draw_debug() {
     ctx.fillStyle = 'white';
     var frameText = Math.floor(frame / 60) + ' | ' + (frame % 60);
-    ctx.fillText(frameText, 10, 400);
-    ctx.fillText('Letters: ' + letters, 10, 415);
-    ctx.fillText('Target word: ' + word, 10, 430);
+    ctx.fillText(frameText, 10, 410);
+    ctx.fillText('Letters: ' + letters, 10, 425);
+    ctx.fillText('Target word: ' + word, 10, 440);
     if (status == 'dead') {
-      ctx.fillText('Dead...', 10, 445);
+      ctx.fillText('Dead...', 10, 455);
     }
     else if (letters == word) {
-      ctx.fillText('Victory!', 10, 445);
+      ctx.fillText('Victory!', 10, 455);
     }
     else if (word.indexOf(letters) === 0) {
-      ctx.fillText('Playing', 10, 445);
+      ctx.fillText('Playing', 10, 455);
     }
     else {
-      ctx.fillText('Failure...', 10, 445);
+      ctx.fillText('Failure...', 10, 455);
     }
   }
   
   function draw_entities() {
     for (var i = 0; i < floor_entities.length; i++) {
       var entity = floor_entities[i];
-      ctx.drawImage(getImage(entity), entity.x, entity.y);
+      ctx.drawImage(getImage(entity), entity.x + 10, entity.y + 10);
     }
     for (var i = 0; i < body_entities.length; i++) {
       var entity = body_entities[i];
-      ctx.drawImage(getImage(entity), entity.x, entity.y);
+      ctx.drawImage(getImage(entity), entity.x + 10, entity.y + 10);
     }
   }
   
