@@ -1,5 +1,3 @@
-<!-- 15x12 grid, each square 32x32 pixels -->
-
 <html>
 
 <head>
@@ -9,6 +7,15 @@
 <body>
 <canvas id="canvas" width="640" height="480"></canvas>
 <script type="text/javascript">
+
+var frame = 0;
+var canvas_width = 640;
+var canvas_height = 480;
+
+var num_rows = 12;
+var num_columns = 15;
+var square_width = 32;
+var square_height = 32;
 
 // The unchanging background of the world.
 // 0: bare
@@ -37,16 +44,16 @@ var bridges = 0;
 
 function newTile(letter, r, c) {
   return { sprite: 'tile'
-         , x:      c * 32
-         , y:      r * 32
+         , x:      c * square_width
+         , y:      r * square_height
          , letter: letter
          };
 }
 
 function newPlayer(r, c) {
   return { sprite: 'player'
-         , x:      c * 32
-         , y:      r * 32
+         , x:      c * square_width
+         , y:      r * square_height
          , facing: 'down'
          , state:  'stopped'
          };
@@ -54,8 +61,8 @@ function newPlayer(r, c) {
 
 function newDartDemon(r, c) {
   return { sprite: 'dartdemon'
-         , x:      c * 32
-         , y:      r * 32
+         , x:      c * square_width
+         , y:      r * square_height
          , facing: 'down'
          , state:  'stopped'
          };
@@ -70,8 +77,8 @@ var floor_entities =
   , newTile('T', 8, 12)
   ];
 var body_entities =
-  [ newPlayer(4, 7)
-  , newDartDemon(3, 8)
+  [ newPlayer(5, 7)
+  , newDartDemon(4, 8)
   ];
 
 function makeImage(src) {
@@ -109,10 +116,6 @@ function getImage(entity) {
   return images[url];
 }
 
-var frame = 0;
-var width = 640;
-var height = 480;
-
 var keys_down = {};
 
 // indices of floor entities which will be deleted on end of frame
@@ -128,18 +131,18 @@ $(document).ready(function(){
   
   function draw_scenery() {
     ctx.fillStyle = 'black';
-    ctx.fillRect(0, 0, width, height);
+    ctx.fillRect(0, 0, canvas_width, canvas_height);
     
     var r, c;
-    for (r = 0; r < scenery.length; r++) {
-      for (c = 0; c < scenery[0].length; c++) {
+    for (r = 0; r < num_rows; r++) {
+      for (c = 0; c < num_columns; c++) {
         switch (scenery[r][c]) {
           case 0: ctx.fillStyle = '#ffffcc'; break;
           case 1: ctx.fillStyle = '#00ff00'; break;
           case 2: ctx.fillStyle = '#0033ff'; break;
           case 3: ctx.fillStyle = '#006600'; break;
         }
-        ctx.fillRect(c * 32, r * 32, 32, 32);
+        ctx.fillRect(c * square_width, r * square_height, square_width, square_height);
       }
     }
   }
@@ -182,13 +185,13 @@ $(document).ready(function(){
       var entity = body_entities[i];
       var x = entity.x;
       var y = entity.y;
-      var cx = column * 32;
-      var ry = row * 32;
+      var cx = column * square_width;
+      var ry = row * square_height;
       if
-        (  cx - 32 < x
-        && x < cx + 32
-        && ry - 32 < y
-        && y < ry + 32
+        (  cx - square_width < x
+        && x < cx + square_width
+        && ry - square_height < y
+        && y < ry + square_height
         ) {
         return true;
       }
@@ -213,10 +216,10 @@ $(document).ready(function(){
   function get_square(entity) {
     var x = entity.x;
     var y = entity.y;
-    if (x % 16 != 0 || y % 16 != 0) {
+    if (x % (square_width / 2) != 0 || y % (square_height / 2) != 0) {
       return null;
     }
-    return [y / 32, x / 32];
+    return [y / square_height, x / square_width];
   }
   
   function get_next_square(entity, direction) {
@@ -275,7 +278,7 @@ $(document).ready(function(){
   function check_movement(entity, index) {
     if (entity.state == 'moving') {
       bump(entity);
-      if (entity.x % 16 == 0 && entity.y % 16 == 0) {
+      if (entity.x % (square_width / 2) == 0 && entity.y % (square_height / 2) == 0) {
         entity.state = 'stopped';
         if (entity.sprite == 'player') {
           check_pickup(entity.x, entity.y);
