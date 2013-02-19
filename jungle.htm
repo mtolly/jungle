@@ -8,13 +8,13 @@
 <canvas id="canvas" width="640" height="480"></canvas>
 <script type="text/javascript">
 
-var frame = 0;
-var canvas_width = 640;
+var frame         = 0;
+var canvas_width  = 640;
 var canvas_height = 480;
 
-var num_rows = 12;
-var num_columns = 15;
-var square_width = 32;
+var num_rows      = 12;
+var num_columns   = 15;
+var square_width  = 32;
 var square_height = 32;
 
 // The unchanging background of the world.
@@ -119,10 +119,10 @@ function getImage(entity) {
 var keys_down = {};
 
 // entities which will be added/deleted on end of frame
-var floor_to_add = [];
+var floor_to_add    = [];
 var floor_to_delete = [];
-var body_to_add = [];
-var body_to_delete = [];
+var body_to_add     = [];
+var body_to_delete  = [];
 
 // 'playing', 'dead', 'complete'
 var status = 'playing';
@@ -186,8 +186,8 @@ $(document).ready(function(){
     for (var i = 0; i < body_entities.length; i++) {
       var entity = body_entities[i];
       if (ignore_entity == entity) continue;
-      var x = entity.x;
-      var y = entity.y;
+      var x  = entity.x;
+      var y  = entity.y;
       var cx = column * square_width;
       var ry = row * square_height;
       if
@@ -230,10 +230,10 @@ $(document).ready(function(){
     var r = sq[0];
     var c = sq[1];
     switch (direction) {
-      case 'left': return [r, c - 0.5];
+      case 'left':  return [r, c - 0.5];
       case 'right': return [r, c + 0.5];
-      case 'up': return [r - 0.5, c];
-      case 'down': return [r + 0.5, c];
+      case 'up':    return [r - 0.5, c];
+      case 'down':  return [r + 0.5, c];
     }
   }
   
