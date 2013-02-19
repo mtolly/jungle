@@ -309,8 +309,7 @@ $(document).ready(function(){
   
   function update_entities() {
     for (var i = 0; i < body_entities.length; i++) {
-      var entity = body_entities[i];
-      check_movement(entity, i);
+      check_movement(body_entities[i]);
     }
   }
   
