@@ -118,8 +118,11 @@ function getImage(entity) {
 
 var keys_down = {};
 
-// indices of floor entities which will be deleted on end of frame
-var to_delete = {};
+// entities which will be added/deleted on end of frame
+var floor_to_add = [];
+var floor_to_delete = [];
+var body_to_add = [];
+var body_to_delete = [];
 
 // 'playing', 'dead', 'complete'
 var status = 'playing';
@@ -179,10 +182,10 @@ $(document).ready(function(){
   }
   
   // row and column should be multiples of 0.5.
-  function is_occupied(row, column, index) {
+  function is_occupied(row, column, ignore_entity) {
     for (var i = 0; i < body_entities.length; i++) {
-      if (i == index) continue;
       var entity = body_entities[i];
+      if (ignore_entity == entity) continue;
       var x = entity.x;
       var y = entity.y;
       var cx = column * square_width;
@@ -260,7 +263,7 @@ $(document).ready(function(){
     for (var i = 0; i < floor_entities.length; i++) {
       var entity = floor_entities[i];
       if (entity.x == x && entity.y == y) {
-        to_delete[i] = true;
+        floor_to_delete.push(entity);
         switch (entity.sprite) {
           case 'tile':
             letters += entity.letter;
@@ -275,7 +278,7 @@ $(document).ready(function(){
   
   // Handles updating the moving/stopped state, and applying movement to
   // position.
-  function check_movement(entity, index) {
+  function check_movement(entity) {
     if (entity.state == 'moving') {
       bump(entity);
       if (entity.x % (square_width / 2) == 0 && entity.y % (square_height / 2) == 0) {
@@ -291,7 +294,7 @@ $(document).ready(function(){
         if (kd.length) {
           var dir = kd[0];
           entity.facing = dir;
-          if (can_move(entity, dir, index)) {
+          if (can_move(entity, dir)) {
             start_moving(entity, dir);
           }
         }
@@ -299,9 +302,9 @@ $(document).ready(function(){
     }
   }
   
-  function can_move(entity, direction, index) {
+  function can_move(entity, direction) {
     var next_sq = get_next_square(entity, direction);
-    return !is_occupied(next_sq[0], next_sq[1], index);
+    return !is_occupied(next_sq[0], next_sq[1], entity);
   }
   
   function update_entities() {
@@ -312,12 +315,41 @@ $(document).ready(function(){
   }
   
   function delete_entities() {
-    var indices = Object.keys(to_delete);
-    indices.sort();
-    for (var i = indices.length - 1; i >= 0; i--) {
-      floor_entities.splice(indices[i], 1);
+    var i, j;
+    
+    var new_floor = [];
+    outer:
+    for (i = 0; i < floor_entities.length; i++) {
+      for (j = 0; j < floor_to_delete.length; j++) {
+        if (floor_entities[i] === floor_to_delete[j]) {
+          continue outer;
+        }
+      }
+      // don't delete, copy to new version of array
+      new_floor.push(floor_entities[i]);
     }
-    to_delete = {};
+    floor_entities = new_floor;
+    
+    var new_body = [];
+    outer:
+    for (i = 0; i < body_entities.length; i++) {
+      for (j = 0; j < body_to_delete.length; j++) {
+        if (body_entities[i] === body_to_delete[j]) {
+          continue outer;
+        }
+      }
+      // don't delete, copy to new version of array
+      new_body.push(body_entities[i]);
+    }
+    body_entities = new_body;
+    
+    floor_to_delete = [];
+    body_to_delete = [];
+  }
+  
+  function add_entities() {
+    floor_entities = floor_entities.concat(floor_to_add);
+    body_entities = body_entities.concat(body_to_add);
   }
   
   $(document).keydown(function(evt) {
@@ -326,7 +358,7 @@ $(document).ready(function(){
       case 38: keys_down['up']    = true; break;
       case 39: keys_down['right'] = true; break;
       case 40: keys_down['down']  = true; break;
-      case 75: kill(); break; // K
+      // case 75: kill(); break; // K
     }
   });
   
@@ -358,6 +390,7 @@ $(document).ready(function(){
     draw_entities();
     update_entities();
     delete_entities();
+    add_entities();
   })();
 
 })
