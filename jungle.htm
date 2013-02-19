@@ -35,47 +35,43 @@ var letters = '';
 var apples = 0;
 var bridges = 0;
 
+function newTile(letter, r, c) {
+  return { sprite: 'tile'
+         , x:      c * 32
+         , y:      r * 32
+         , letter: letter
+         };
+}
+
+function newPlayer(r, c) {
+  return { sprite: 'player'
+         , x:      c * 32
+         , y:      r * 32
+         , facing: 'down'
+         , state:  'stopped'
+         };
+}
+
+function newDartDemon(r, c) {
+  return { sprite: 'dartdemon'
+         , x:      c * 32
+         , y:      r * 32
+         , facing: 'down'
+         , state:  'stopped'
+         };
+}
+
 // Entities are square-sized objects which can change state.
 var floor_entities =
-  [ { sprite: 'tile'
-    , x:      12 * 32
-    , y:      8 * 32
-    , letter: 'T'
-    }
-  , { sprite: 'tile'
-    , x:      12 * 32
-    , y:      7 * 32
-    , letter: 'S'
-    }
-  , { sprite: 'tile'
-    , x:      12 * 32
-    , y:      6 * 32
-    , letter: 'R'
-    }
-  , { sprite: 'tile'
-    , x:      11 * 32
-    , y:      6 * 32
-    , letter: 'I'
-    }
-  , { sprite: 'tile'
-    , x:      10 * 32
-    , y:      6 * 32
-    , letter: 'F'
-    }
+  [ newTile('F', 6, 10)
+  , newTile('I', 6, 11)
+  , newTile('R', 6, 12)
+  , newTile('S', 7, 12)
+  , newTile('T', 8, 12)
   ];
 var body_entities =
-  [ { sprite: 'player'
-    , x:      7 * 32
-    , y:      4 * 32
-    , facing: 'down'
-    , state:  'stopped'
-    }
-  , { sprite: 'dartdemon'
-    , x:      8 * 32
-    , y:      3 * 32
-    , facing: 'down'
-    , state:  'stopped'
-    }
+  [ newPlayer(4, 7)
+  , newDartDemon(3, 8)
   ];
 
 function makeImage(src) {
