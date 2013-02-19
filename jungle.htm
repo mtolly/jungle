@@ -71,6 +71,7 @@ var floor_entities =
   ];
 var body_entities =
   [ newBody('player', 5, 7)
+  , newBody('gazelle', 7, 7)
   ];
 
 function makeImage(src) {
@@ -94,6 +95,13 @@ function imageURL(entity) {
       }
     case 'dartdemon':
       return 'img/dartdemon/' + entity.facing + '.png';
+    case 'gazelle':
+      switch (entity.state) {
+        case 'stopped':
+          return 'img/gazelle/stopped/' + entity.facing + '.png';
+        case 'moving':
+          return 'img/gazelle/moving/' + entity.facing + '/' + anim_frame + '.png';
+      }
   }
 }
 
