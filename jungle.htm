@@ -83,11 +83,17 @@ function makeImage(src) {
 images = {};
 
 function imageURL(entity) {
+  var anim_frame = Math.floor(frame / 5) % 4;
   switch (entity.sprite) {
     case 'tile':
       return 'img/tile/' + entity.letter + '.png';
     case 'player':
-      return 'img/player/' + entity.facing + '.png';
+      switch (entity.state) {
+        case 'stopped':
+          return 'img/player/stopped/' + entity.facing + '.png';
+        case 'moving':
+          return 'img/player/moving/' + entity.facing + '/' + anim_frame + '.png';
+      }
     case 'dartdemon':
       return 'img/dartdemon/' + entity.facing + '.png';
   }
