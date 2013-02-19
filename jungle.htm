@@ -52,6 +52,13 @@ function newTile(letter, r, c) {
          };
 }
 
+function newFloor(sprite, r, c) {
+  return { sprite: sprite
+         , x:      c * square_width
+         , y:      r * square_height
+         };
+}
+
 function newBody(sprite, r, c) {
   return { sprite: sprite
          , x:      c * square_width
@@ -68,10 +75,10 @@ var floor_entities =
   , newTile('R', 2, 12)
   , newTile('S', 6, 13)
   , newTile('T', 8, 12)
+  , newFloor('apple', 5, 8)
   ];
 var body_entities =
   [ newBody('player', 5, 7)
-  , newBody('gazelle', 7, 7)
   ];
 
 function makeImage(src) {
@@ -85,7 +92,11 @@ images = {};
 function imageURL(entity) {
   switch (entity.sprite) {
     case 'tile':
-      return 'img/tile/' + entity.letter + '.png';
+      return 'img/floor/tile/' + entity.letter + '.png';
+    case 'apple':
+      return 'img/floor/apple.png';
+    case 'bridge':
+      return 'img/floor/bridge.png';
     case 'player':
       switch (entity.state) {
         case 'stopped':
@@ -154,18 +165,19 @@ $(document).ready(function(){
     var frameText = Math.floor(frame / 60) + ' | ' + (frame % 60);
     ctx.fillText(frameText, 10, 410);
     ctx.fillText('Letters: ' + letters, 10, 425);
-    ctx.fillText('Target word: ' + word, 10, 440);
+    ctx.fillText(apples + ' apples, ' + bridges + ' bridges', 10, 440);
+    ctx.fillText('Target word: ' + word, 10, 455);
     if (status == 'dead') {
-      ctx.fillText('Dead...', 10, 455);
+      ctx.fillText('Dead...', 10, 470);
     }
     else if (letters == word) {
-      ctx.fillText('Victory!', 10, 455);
+      ctx.fillText('Victory!', 10, 470);
     }
     else if (word.indexOf(letters) === 0) {
-      ctx.fillText('Playing', 10, 455);
+      ctx.fillText('Playing', 10, 470);
     }
     else {
-      ctx.fillText('Failure...', 10, 455);
+      ctx.fillText('Failure...', 10, 470);
     }
   }
   
@@ -262,6 +274,12 @@ $(document).ready(function(){
             if (letters == word) {
               status = 'complete';
             }
+            break;
+          case 'apple':
+            apples++;
+            break;
+          case 'bridge':
+            bridges++;
             break;
         }
       }
