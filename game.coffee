@@ -226,6 +226,7 @@ $(document).ready () ->
           dir = kd[0]
           entity.facing = dir
           start_moving entity, dir if can_move(entity, dir)
+    null
 
   can_move = (entity, direction) ->
     [r, c] = get_next_square(entity, direction)

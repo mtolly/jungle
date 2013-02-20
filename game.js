@@ -255,7 +255,7 @@
         if (entity.x % (square_width / 2) === 0 && entity.y % (square_height / 2) === 0) {
           entity.state = "stopped";
           if (entity.sprite === "player") {
-            return check_pickup(entity.x, entity.y);
+            check_pickup(entity.x, entity.y);
           }
         }
       } else if (entity.state === "stopped") {
@@ -265,11 +265,12 @@
             dir = kd[0];
             entity.facing = dir;
             if (can_move(entity, dir)) {
-              return start_moving(entity, dir);
+              start_moving(entity, dir);
             }
           }
         }
       }
+      return null;
     };
     can_move = function(entity, direction) {
       var c, r, _ref;
