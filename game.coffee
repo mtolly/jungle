@@ -144,12 +144,14 @@ $(document).ready () ->
       ctx.fillText "Playing", 10, 470
     else
       ctx.fillText "Failure...", 10, 470
+    null
 
   draw_entities = ->
     for entity in floor_entities
       ctx.drawImage getImage(entity), entity.x + 10, entity.y + 10
     for entity in body_entities
       ctx.drawImage getImage(entity), entity.x + 10, entity.y + 10
+    null
 
   # row and column should be multiples of 0.5.
   is_occupied = (row, column, ignore_entity) ->
@@ -164,15 +166,15 @@ $(document).ready () ->
   walkable_bg = (row, column) ->
     return walkable_bg(row - 0.5, column) and walkable_bg(row + 0.5, column)  unless row is Math.floor(row)
     return walkable_bg(row, column - 0.5) and walkable_bg(row, column + 0.5)  unless column is Math.floor(column)
-    return false  if scenery[row][column] is 2
-    return false  if scenery[row][column] is 3
+    return false if scenery[row][column] is 2
+    return false if scenery[row][column] is 3
     true
 
   # returns [r, c] or null, where r and c are multiples of 0.5.
   get_square = (entity) ->
     x = entity.x
     y = entity.y
-    return null  if x % (square_width / 2) isnt 0 or y % (square_height / 2) isnt 0
+    return null if x % (square_width / 2) isnt 0 or y % (square_height / 2) isnt 0
     [y / square_height, x / square_width]
 
   get_next_square = (entity, direction) ->
@@ -189,11 +191,13 @@ $(document).ready () ->
       when "right" then entity.x += 2
       when "up" then entity.y -= 2
       when "down" then entity.y += 2
+    null
 
   start_moving = (entity, direction) ->
     entity.facing = direction
     entity.state = "moving"
     bump entity
+    null
 
   check_pickup = (x, y) ->
     for entity in floor_entities
@@ -205,6 +209,7 @@ $(document).ready () ->
             status = "complete" if letters is word
           when "apple"  then apples++
           when "bridge" then bridges++
+    null
 
   # Handles updating the moving/stopped state, and applying movement to
   # position.
@@ -213,14 +218,14 @@ $(document).ready () ->
       bump entity
       if entity.x % (square_width / 2) is 0 and entity.y % (square_height / 2) is 0
         entity.state = "stopped"
-        check_pickup entity.x, entity.y  if entity.sprite is "player"
+        check_pickup entity.x, entity.y if entity.sprite is "player"
     else if entity.state is "stopped"
       if entity.sprite is "player"
         kd = Object.keys(keys_down)
         if kd.length
           dir = kd[0]
           entity.facing = dir
-          start_moving entity, dir  if can_move(entity, dir)
+          start_moving entity, dir if can_move(entity, dir)
 
   can_move = (entity, direction) ->
     [r, c] = get_next_square(entity, direction)
@@ -229,11 +234,12 @@ $(document).ready () ->
   update_entities = ->
     for entity in body_entities
       check_movement entity
+    null
 
   is_in = (x, ys) ->
     for y in ys
       return true if x is y
-    return false
+    false
 
   delete_entities = ->
     new_floor = []
@@ -241,21 +247,23 @@ $(document).ready () ->
     
     for entity in floor_entities
       unless is_in entity, floor_to_delete
-          new_floor.push entity
+        new_floor.push entity
     for entity in body_entities
       unless is_in entity, body_to_delete
-          new_body.push entity
+        new_body.push entity
     
     floor_entities = new_floor
     body_entities = new_body
     floor_to_delete = []
     body_to_delete = []
+    null
 
   add_entities = ->
     floor_entities = floor_entities.concat(floor_to_add)
     body_entities = body_entities.concat(body_to_add)
     floor_to_add = []
     body_to_add = []
+    null
 
   $(document).keydown (evt) ->
     switch evt.which
@@ -263,6 +271,7 @@ $(document).ready () ->
       when 38 then keys_down["up"] = true
       when 39 then keys_down["right"] = true
       when 40 then keys_down["down"] = true
+    null
 
   $(document).keyup (evt) ->
     switch evt.which
@@ -270,9 +279,15 @@ $(document).ready () ->
       when 38 then delete keys_down["up"]
       when 39 then delete keys_down["right"]
       when 40 then delete keys_down["down"]
+    null
 
   window.requestAnimFrame = (->
-    window.requestAnimationFrame or window.webkitRequestAnimationFrame or window.mozRequestAnimationFrame or window.oRequestAnimationFrame or window.msRequestAnimationFrame or (callback) ->
+    window.requestAnimationFrame or
+    window.webkitRequestAnimationFrame or
+    window.mozRequestAnimationFrame or
+    window.oRequestAnimationFrame or
+    window.msRequestAnimationFrame or
+    (callback) ->
       window.setTimeout callback, 1000 / 60
   )()
 
@@ -289,4 +304,5 @@ $(document).ready () ->
     update_entities()
     delete_entities()
     add_entities()
+    null
   )()

@@ -128,27 +128,27 @@
       ctx.fillText(apples + " apples, " + bridges + " bridges", 10, 440);
       ctx.fillText("Target word: " + word, 10, 455);
       if (status === "dead") {
-        return ctx.fillText("Dead...", 10, 470);
+        ctx.fillText("Dead...", 10, 470);
       } else if (letters === word) {
-        return ctx.fillText("Victory!", 10, 470);
+        ctx.fillText("Victory!", 10, 470);
       } else if (word.indexOf(letters) === 0) {
-        return ctx.fillText("Playing", 10, 470);
+        ctx.fillText("Playing", 10, 470);
       } else {
-        return ctx.fillText("Failure...", 10, 470);
+        ctx.fillText("Failure...", 10, 470);
       }
+      return null;
     };
     draw_entities = function() {
-      var entity, _i, _j, _len, _len1, _results;
+      var entity, _i, _j, _len, _len1;
       for (_i = 0, _len = floor_entities.length; _i < _len; _i++) {
         entity = floor_entities[_i];
         ctx.drawImage(getImage(entity), entity.x + 10, entity.y + 10);
       }
-      _results = [];
       for (_j = 0, _len1 = body_entities.length; _j < _len1; _j++) {
         entity = body_entities[_j];
-        _results.push(ctx.drawImage(getImage(entity), entity.x + 10, entity.y + 10));
+        ctx.drawImage(getImage(entity), entity.x + 10, entity.y + 10);
       }
-      return _results;
+      return null;
     };
     is_occupied = function(row, column, ignore_entity) {
       var cx, entity, ry, _i, _len, _ref, _ref1;
@@ -206,23 +206,27 @@
     bump = function(entity) {
       switch (entity.facing) {
         case "left":
-          return entity.x -= 2;
+          entity.x -= 2;
+          break;
         case "right":
-          return entity.x += 2;
+          entity.x += 2;
+          break;
         case "up":
-          return entity.y -= 2;
+          entity.y -= 2;
+          break;
         case "down":
-          return entity.y += 2;
+          entity.y += 2;
       }
+      return null;
     };
     start_moving = function(entity, direction) {
       entity.facing = direction;
       entity.state = "moving";
-      return bump(entity);
+      bump(entity);
+      return null;
     };
     check_pickup = function(x, y) {
-      var entity, _i, _len, _results;
-      _results = [];
+      var entity, _i, _len;
       for (_i = 0, _len = floor_entities.length; _i < _len; _i++) {
         entity = floor_entities[_i];
         if (entity.x === x && entity.y === y) {
@@ -231,25 +235,18 @@
             case "tile":
               letters += entity.letter;
               if (letters === word) {
-                _results.push(status = "complete");
-              } else {
-                _results.push(void 0);
+                status = "complete";
               }
               break;
             case "apple":
-              _results.push(apples++);
+              apples++;
               break;
             case "bridge":
-              _results.push(bridges++);
-              break;
-            default:
-              _results.push(void 0);
+              bridges++;
           }
-        } else {
-          _results.push(void 0);
         }
       }
-      return _results;
+      return null;
     };
     check_movement = function(entity) {
       var dir, kd;
@@ -280,13 +277,12 @@
       return !is_occupied(r, c, entity);
     };
     update_entities = function() {
-      var entity, _i, _len, _results;
-      _results = [];
+      var entity, _i, _len;
       for (_i = 0, _len = body_entities.length; _i < _len; _i++) {
         entity = body_entities[_i];
-        _results.push(check_movement(entity));
+        check_movement(entity);
       }
-      return _results;
+      return null;
     };
     is_in = function(x, ys) {
       var y, _i, _len;
@@ -317,37 +313,47 @@
       floor_entities = new_floor;
       body_entities = new_body;
       floor_to_delete = [];
-      return body_to_delete = [];
+      body_to_delete = [];
+      return null;
     };
     add_entities = function() {
       floor_entities = floor_entities.concat(floor_to_add);
       body_entities = body_entities.concat(body_to_add);
       floor_to_add = [];
-      return body_to_add = [];
+      body_to_add = [];
+      return null;
     };
     $(document).keydown(function(evt) {
       switch (evt.which) {
         case 37:
-          return keys_down["left"] = true;
+          keys_down["left"] = true;
+          break;
         case 38:
-          return keys_down["up"] = true;
+          keys_down["up"] = true;
+          break;
         case 39:
-          return keys_down["right"] = true;
+          keys_down["right"] = true;
+          break;
         case 40:
-          return keys_down["down"] = true;
+          keys_down["down"] = true;
       }
+      return null;
     });
     $(document).keyup(function(evt) {
       switch (evt.which) {
         case 37:
-          return delete keys_down["left"];
+          delete keys_down["left"];
+          break;
         case 38:
-          return delete keys_down["up"];
+          delete keys_down["up"];
+          break;
         case 39:
-          return delete keys_down["right"];
+          delete keys_down["right"];
+          break;
         case 40:
-          return delete keys_down["down"];
+          delete keys_down["down"];
       }
+      return null;
     });
     window.requestAnimFrame = (function() {
       return window.requestAnimationFrame || window.webkitRequestAnimationFrame || window.mozRequestAnimationFrame || window.oRequestAnimationFrame || window.msRequestAnimationFrame || function(callback) {
@@ -367,7 +373,8 @@
       draw_entities();
       update_entities();
       delete_entities();
-      return add_entities();
+      add_entities();
+      return null;
     })();
   });
 
