@@ -47,12 +47,13 @@ $(document).ready () ->
     x: c * square_width
     y: r * square_height
 
-  newBody = (sprite, r, c) ->
+  newBody = (sprite, r, c, speed = 2) ->
     sprite: sprite
     x: c * square_width
     y: r * square_height
     facing: "down"
     state: "stopped"
+    speed: speed
 
   # Entities are square-sized objects which can change state.
   floor_entities =
@@ -64,7 +65,8 @@ $(document).ready () ->
     , newFloor('apple', 5, 8)
     ]
   body_entities =
-    [ newBody('player', 5, 7)
+    [ newBody('player', 5, 7, 2)
+    , newBody('gazelle', 6, 7, 4)
     ]
 
   makeImage = (src) ->
@@ -169,16 +171,19 @@ $(document).ready () ->
     return false if scenery[row][column] is 2
     return false if scenery[row][column] is 3
     true
-
+  
   # returns [r, c] or null, where r and c are multiples of 0.5.
-  get_square = (entity) ->
+  entity_square = (entity) ->
     x = entity.x
     y = entity.y
-    return null if x % (square_width / 2) isnt 0 or y % (square_height / 2) isnt 0
+    if x % (square_width / 2) isnt 0
+      return null
+    if y % (square_height / 2) isnt 0
+      return null
     [y / square_height, x / square_width]
 
   get_next_square = (entity, direction) ->
-    [r, c] = get_square(entity)
+    [r, c] = entity_square(entity)
     switch direction
       when "left" then [r, c - 0.5]
       when "right" then [r, c + 0.5]
@@ -187,10 +192,10 @@ $(document).ready () ->
 
   bump = (entity) ->
     switch entity.facing
-      when "left" then entity.x -= 2
-      when "right" then entity.x += 2
-      when "up" then entity.y -= 2
-      when "down" then entity.y += 2
+      when "left" then entity.x -= entity.speed
+      when "right" then entity.x += entity.speed
+      when "up" then entity.y -= entity.speed
+      when "down" then entity.y += entity.speed
     null
 
   start_moving = (entity, direction) ->
@@ -210,22 +215,42 @@ $(document).ready () ->
           when "apple"  then apples++
           when "bridge" then bridges++
     null
+  
+  clockwise = (dir) ->
+    switch dir
+      when 'up' then 'right'
+      when 'right' then 'down'
+      when 'down' then 'left'
+      when 'left' then 'up'
 
   # Handles updating the moving/stopped state, and applying movement to
   # position.
   check_movement = (entity) ->
     if entity.state is "moving"
       bump entity
-      if entity.x % (square_width / 2) is 0 and entity.y % (square_height / 2) is 0
+      if entity_square entity
         entity.state = "stopped"
         check_pickup entity.x, entity.y if entity.sprite is "player"
     else if entity.state is "stopped"
-      if entity.sprite is "player"
-        kd = Object.keys(keys_down)
-        if kd.length
-          dir = kd[0]
-          entity.facing = dir
-          start_moving entity, dir if can_move(entity, dir)
+      unless entity_square entity
+        console.log('foo')
+      switch entity.sprite
+        when 'player'
+          kd = Object.keys(keys_down)
+          if kd.length
+            dir = kd[0]
+            entity.facing = dir
+            if can_move entity, dir
+              start_moving entity, dir
+        when 'gazelle'
+          cw0 = entity.facing
+          cw1 = clockwise(cw0)
+          cw2 = clockwise(cw1)
+          cw3 = clockwise(cw2)
+          for dir in [cw0, cw1, cw2, cw3]
+            if can_move entity, dir
+              start_moving entity, dir
+              return
     null
 
   can_move = (entity, direction) ->

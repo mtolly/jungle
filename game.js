@@ -2,7 +2,7 @@
 (function() {
 
   $(document).ready(function() {
-    var add_entities, anim_frame, anim_subframe, animloop, apples, body_entities, body_to_add, body_to_delete, bridges, bump, can_move, canvas, canvas_height, canvas_width, check_movement, check_pickup, ctx, delete_entities, draw_debug, draw_entities, draw_scenery, floor_entities, floor_to_add, floor_to_delete, frame, getImage, get_next_square, get_square, imageURL, images, is_in, is_occupied, keys_down, letters, makeImage, newBody, newFloor, newTile, num_columns, num_rows, scenery, square_height, square_width, start_moving, status, update_entities, walkable_bg, word;
+    var add_entities, anim_frame, anim_subframe, animloop, apples, body_entities, body_to_add, body_to_delete, bridges, bump, can_move, canvas, canvas_height, canvas_width, check_movement, check_pickup, clockwise, ctx, delete_entities, draw_debug, draw_entities, draw_scenery, entity_square, floor_entities, floor_to_add, floor_to_delete, frame, getImage, get_next_square, imageURL, images, is_in, is_occupied, keys_down, letters, makeImage, newBody, newFloor, newTile, num_columns, num_rows, scenery, square_height, square_width, start_moving, status, update_entities, walkable_bg, word;
     frame = 0;
     anim_frame = 0;
     anim_subframe = 0;
@@ -32,17 +32,21 @@
         y: r * square_height
       };
     };
-    newBody = function(sprite, r, c) {
+    newBody = function(sprite, r, c, speed) {
+      if (speed == null) {
+        speed = 2;
+      }
       return {
         sprite: sprite,
         x: c * square_width,
         y: r * square_height,
         facing: "down",
-        state: "stopped"
+        state: "stopped",
+        speed: speed
       };
     };
     floor_entities = [newTile('F', 3, 6), newTile('I', 2, 8), newTile('R', 2, 12), newTile('S', 6, 13), newTile('T', 8, 12), newFloor('apple', 5, 8)];
-    body_entities = [newBody('player', 5, 7)];
+    body_entities = [newBody('player', 5, 7, 2), newBody('gazelle', 6, 7, 4)];
     makeImage = function(src) {
       var img;
       img = new Image();
@@ -180,18 +184,21 @@
       }
       return true;
     };
-    get_square = function(entity) {
+    entity_square = function(entity) {
       var x, y;
       x = entity.x;
       y = entity.y;
-      if (x % (square_width / 2) !== 0 || y % (square_height / 2) !== 0) {
+      if (x % (square_width / 2) !== 0) {
+        return null;
+      }
+      if (y % (square_height / 2) !== 0) {
         return null;
       }
       return [y / square_height, x / square_width];
     };
     get_next_square = function(entity, direction) {
       var c, r, _ref;
-      _ref = get_square(entity), r = _ref[0], c = _ref[1];
+      _ref = entity_square(entity), r = _ref[0], c = _ref[1];
       switch (direction) {
         case "left":
           return [r, c - 0.5];
@@ -206,16 +213,16 @@
     bump = function(entity) {
       switch (entity.facing) {
         case "left":
-          entity.x -= 2;
+          entity.x -= entity.speed;
           break;
         case "right":
-          entity.x += 2;
+          entity.x += entity.speed;
           break;
         case "up":
-          entity.y -= 2;
+          entity.y -= entity.speed;
           break;
         case "down":
-          entity.y += 2;
+          entity.y += entity.speed;
       }
       return null;
     };
@@ -248,26 +255,56 @@
       }
       return null;
     };
+    clockwise = function(dir) {
+      switch (dir) {
+        case 'up':
+          return 'right';
+        case 'right':
+          return 'down';
+        case 'down':
+          return 'left';
+        case 'left':
+          return 'up';
+      }
+    };
     check_movement = function(entity) {
-      var dir, kd;
+      var cw0, cw1, cw2, cw3, dir, kd, _i, _len, _ref;
       if (entity.state === "moving") {
         bump(entity);
-        if (entity.x % (square_width / 2) === 0 && entity.y % (square_height / 2) === 0) {
+        if (entity_square(entity)) {
           entity.state = "stopped";
           if (entity.sprite === "player") {
             check_pickup(entity.x, entity.y);
           }
         }
       } else if (entity.state === "stopped") {
-        if (entity.sprite === "player") {
-          kd = Object.keys(keys_down);
-          if (kd.length) {
-            dir = kd[0];
-            entity.facing = dir;
-            if (can_move(entity, dir)) {
-              start_moving(entity, dir);
+        if (!entity_square(entity)) {
+          console.log('foo');
+        }
+        switch (entity.sprite) {
+          case 'player':
+            kd = Object.keys(keys_down);
+            if (kd.length) {
+              dir = kd[0];
+              entity.facing = dir;
+              if (can_move(entity, dir)) {
+                start_moving(entity, dir);
+              }
             }
-          }
+            break;
+          case 'gazelle':
+            cw0 = entity.facing;
+            cw1 = clockwise(cw0);
+            cw2 = clockwise(cw1);
+            cw3 = clockwise(cw2);
+            _ref = [cw0, cw1, cw2, cw3];
+            for (_i = 0, _len = _ref.length; _i < _len; _i++) {
+              dir = _ref[_i];
+              if (can_move(entity, dir)) {
+                start_moving(entity, dir);
+                return;
+              }
+            }
         }
       }
       return null;
