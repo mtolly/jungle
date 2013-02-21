@@ -2,7 +2,7 @@
 (function() {
 
   $(document).ready(function() {
-    var add_entities, anim_frame, anim_subframe, animloop, apples, body_entities, body_to_add, body_to_delete, bridges, bump, can_move, canvas, canvas_height, canvas_width, check_movement, check_pickup, clockwise, ctx, delete_entities, draw_debug, draw_entities, draw_scenery, entity_square, floor_entities, floor_to_add, floor_to_delete, frame, getImage, get_next_square, imageURL, images, is_in, is_occupied, keys, keys_down, letters, makeImage, move_gazelle, move_player, move_rhino, newBody, newFloor, newTile, num_columns, num_rows, scenery, square_height, square_width, start_moving, status, update_entities, walkable_bg, word;
+    var add_entities, anim_frame, anim_subframe, animloop, apples, body_entities, body_to_add, body_to_delete, bridges, bump, can_move, canvas, canvas_height, canvas_width, check_movement, check_pickup, clockwise, clockwise_table, ctx, delete_entities, draw_debug, draw_entities, draw_scenery, entity_square, floor_entities, floor_to_add, floor_to_delete, frame, getImage, get_next_square, imageURL, images, is_in, is_occupied, keys, keys_down, letters, makeImage, move_gazelle, move_player, move_rhino, newBody, newFloor, newTile, num_columns, num_rows, scenery, square_height, square_width, start_moving, status, update_entities, walkable_bg, word;
     frame = 0;
     anim_frame = 0;
     anim_subframe = 0;
@@ -268,17 +268,14 @@
       }
       return null;
     };
+    clockwise_table = {
+      up: 'right',
+      right: 'down',
+      down: 'left',
+      left: 'up'
+    };
     clockwise = function(dir) {
-      switch (dir) {
-        case 'up':
-          return 'right';
-        case 'right':
-          return 'down';
-        case 'down':
-          return 'left';
-        case 'left':
-          return 'up';
-      }
+      return clockwise_table[dir];
     };
     move_player = function(entity) {
       var cw0, cw1, cw2, cw3, dir, no_keys, _i, _len, _ref;

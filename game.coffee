@@ -228,12 +228,12 @@ $(document).ready () ->
           when 'bridge' then bridges++
     null
   
-  clockwise = (dir) ->
-    switch dir
-      when 'up'    then 'right'
-      when 'right' then 'down'
-      when 'down'  then 'left'
-      when 'left'  then 'up'
+  clockwise_table =
+    up: 'right'
+    right: 'down'
+    down: 'left'
+    left: 'up'
+  clockwise = (dir) -> clockwise_table[dir]
   
   move_player = (entity) ->
     # smooth movement: if you're going one dir towards a wall, you can
