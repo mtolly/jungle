@@ -241,17 +241,27 @@ $(document).ready () ->
         console.log('foo')
       switch entity.sprite
         when 'player'
-          kd = Object.keys(keys_down)
-          if kd.length
-            dir = kd[0]
-            entity.facing = dir
-            if can_move entity, dir
-              start_moving entity, dir
+          # smooth movement: if you're going one dir towards a wall, you can
+          # make an instant turn by holding the turn direction before you hit
+          # the wall.
+          cw0 = entity.facing
+          cw1 = clockwise cw0
+          cw2 = clockwise cw1
+          cw3 = clockwise cw2
+          no_keys = true
+          for dir in [cw0, cw1, cw2, cw3]
+            if keys_down[dir]
+              no_keys = false
+              entity.facing = dir
+              if can_move entity, dir
+                start_moving entity, dir
+                return
+          entity.facing = cw0 # if we don't move, don't change direction
         when 'gazelle'
           cw0 = entity.facing
-          cw1 = clockwise(cw0)
-          cw2 = clockwise(cw1)
-          cw3 = clockwise(cw2)
+          cw1 = clockwise cw0
+          cw2 = clockwise cw1
+          cw3 = clockwise cw2
           walls = {}
           walled_now = false
           for dir in ['up', 'down', 'left', 'right']

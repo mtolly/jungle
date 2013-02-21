@@ -282,7 +282,7 @@
       }
     };
     check_movement = function(entity) {
-      var cw0, cw1, cw2, cw3, dir, kd, opp, walled_now, walls, _i, _j, _k, _len, _len1, _len2, _ref, _ref1, _ref2;
+      var cw0, cw1, cw2, cw3, dir, no_keys, opp, walled_now, walls, _i, _j, _k, _l, _len, _len1, _len2, _len3, _ref, _ref1, _ref2, _ref3;
       if (entity.state === "moving") {
         bump(entity);
         if (entity_square(entity)) {
@@ -297,14 +297,24 @@
         }
         switch (entity.sprite) {
           case 'player':
-            kd = Object.keys(keys_down);
-            if (kd.length) {
-              dir = kd[0];
-              entity.facing = dir;
-              if (can_move(entity, dir)) {
-                start_moving(entity, dir);
+            cw0 = entity.facing;
+            cw1 = clockwise(cw0);
+            cw2 = clockwise(cw1);
+            cw3 = clockwise(cw2);
+            no_keys = true;
+            _ref = [cw0, cw1, cw2, cw3];
+            for (_i = 0, _len = _ref.length; _i < _len; _i++) {
+              dir = _ref[_i];
+              if (keys_down[dir]) {
+                no_keys = false;
+                entity.facing = dir;
+                if (can_move(entity, dir)) {
+                  start_moving(entity, dir);
+                  return;
+                }
               }
             }
+            entity.facing = cw0;
             break;
           case 'gazelle':
             cw0 = entity.facing;
@@ -313,26 +323,26 @@
             cw3 = clockwise(cw2);
             walls = {};
             walled_now = false;
-            _ref = ['up', 'down', 'left', 'right'];
-            for (_i = 0, _len = _ref.length; _i < _len; _i++) {
-              dir = _ref[_i];
+            _ref1 = ['up', 'down', 'left', 'right'];
+            for (_j = 0, _len1 = _ref1.length; _j < _len1; _j++) {
+              dir = _ref1[_j];
               if (!can_move(entity, dir)) {
                 walls[dir] = walled_now = true;
               }
             }
             if (entity.walled) {
-              _ref1 = [cw1, cw0, cw3, cw2];
-              for (_j = 0, _len1 = _ref1.length; _j < _len1; _j++) {
-                dir = _ref1[_j];
+              _ref2 = [cw1, cw0, cw3, cw2];
+              for (_k = 0, _len2 = _ref2.length; _k < _len2; _k++) {
+                dir = _ref2[_k];
                 if (!walls[dir]) {
                   start_moving(entity, dir);
                   break;
                 }
               }
             } else {
-              _ref2 = [cw0, cw3, cw2, cw1];
-              for (_k = 0, _len2 = _ref2.length; _k < _len2; _k++) {
-                dir = _ref2[_k];
+              _ref3 = [cw0, cw3, cw2, cw1];
+              for (_l = 0, _len3 = _ref3.length; _l < _len3; _l++) {
+                dir = _ref3[_l];
                 if (!walls[dir]) {
                   start_moving(entity, dir);
                   break;
