@@ -17,3 +17,5 @@ TODO
 
 * Travel on raft at begin/end of level
 
+* Animals shouldn't be able to cover floor entities
+
