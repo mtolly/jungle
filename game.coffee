@@ -155,14 +155,23 @@ $(document).ready () ->
     null
 
   # row and column should be multiples of 0.5.
-  is_occupied = (row, column, ignore_entity) ->
+  is_occupied = (row, column, entity_to_move) ->
     for entity in body_entities
-      continue if ignore_entity is entity
+      continue if entity is entity_to_move
       cx = column * square_width
       ry = row * square_height
       if cx - square_width < entity.x < cx + square_width
         if ry - square_height < entity.y < ry + square_height
           return true
+    if entity_to_move.sprite isnt 'player'
+      # Non-player body entities can't walk over floor entities
+      for entity in floor_entities
+        continue if entity is entity_to_move
+        cx = column * square_width
+        ry = row * square_height
+        if cx - square_width < entity.x < cx + square_width
+          if ry - square_height < entity.y < ry + square_height
+            return true
     not walkable_bg(row, column)
 
   # row and column should be multiples of 0.5.

@@ -150,11 +150,11 @@
       }
       return null;
     };
-    is_occupied = function(row, column, ignore_entity) {
-      var cx, entity, ry, _i, _len, _ref, _ref1;
+    is_occupied = function(row, column, entity_to_move) {
+      var cx, entity, ry, _i, _j, _len, _len1, _ref, _ref1, _ref2, _ref3;
       for (_i = 0, _len = body_entities.length; _i < _len; _i++) {
         entity = body_entities[_i];
-        if (ignore_entity === entity) {
+        if (entity === entity_to_move) {
           continue;
         }
         cx = column * square_width;
@@ -162,6 +162,21 @@
         if ((cx - square_width < (_ref = entity.x) && _ref < cx + square_width)) {
           if ((ry - square_height < (_ref1 = entity.y) && _ref1 < ry + square_height)) {
             return true;
+          }
+        }
+      }
+      if (entity_to_move.sprite !== 'player') {
+        for (_j = 0, _len1 = floor_entities.length; _j < _len1; _j++) {
+          entity = floor_entities[_j];
+          if (entity === entity_to_move) {
+            continue;
+          }
+          cx = column * square_width;
+          ry = row * square_height;
+          if ((cx - square_width < (_ref2 = entity.x) && _ref2 < cx + square_width)) {
+            if ((ry - square_height < (_ref3 = entity.y) && _ref3 < ry + square_height)) {
+              return true;
+            }
           }
         }
       }

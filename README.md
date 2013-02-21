@@ -17,5 +17,6 @@ TODO
 
 * Travel on raft at begin/end of level
 
-* Animals shouldn't be able to cover floor entities
+* Sounds
 
+* Better loading (load all images before level starts)
