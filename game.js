@@ -282,7 +282,7 @@
       }
     };
     check_movement = function(entity) {
-      var cw0, cw1, cw2, cw3, dir, kd, walled_now, walls, _i, _j, _k, _len, _len1, _len2, _ref, _ref1, _ref2;
+      var cw0, cw1, cw2, cw3, dir, kd, opp, walled_now, walls, _i, _j, _k, _len, _len1, _len2, _ref, _ref1, _ref2;
       if (entity.state === "moving") {
         bump(entity);
         if (entity_square(entity)) {
@@ -340,6 +340,15 @@
               }
             }
             entity.walled = walled_now;
+            break;
+          case 'rhino':
+            dir = entity.facing;
+            opp = clockwise(clockwise(dir));
+            if (can_move(entity, dir)) {
+              start_moving(entity, dir);
+            } else if (can_move(entity, opp)) {
+              start_moving(entity, opp);
+            }
         }
       }
       return null;

@@ -269,6 +269,13 @@ $(document).ready () ->
                 start_moving entity, dir
                 break
           entity.walled = walled_now
+        when 'rhino'
+          dir = entity.facing
+          opp = clockwise clockwise dir
+          if can_move entity, dir
+            start_moving entity, dir
+          else if can_move entity, opp
+            start_moving entity, opp
     null
 
   can_move = (entity, direction) ->
