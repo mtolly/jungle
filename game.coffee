@@ -139,7 +139,6 @@ $(document).ready () ->
     ctx.fillText "Letters: #{letters}", 10, 425
     ctx.fillText "#{apples} apples, #{bridges} bridges", 10, 440
     ctx.fillText "Target word: #{word}", 10, 455
-    
     status_text =
       if status is 'dead' then 'Dead...'
       else if letters is word then 'Victory!'
@@ -189,17 +188,17 @@ $(document).ready () ->
   get_next_square = (entity, direction) ->
     [r, c] = entity_square(entity)
     switch direction
-      when 'left' then [r, c - 0.5]
-      when 'right' then [r, c + 0.5]
-      when 'up' then [r - 0.5, c]
-      when 'down' then [r + 0.5, c]
+      when 'left'  then [r,       c - 0.5]
+      when 'right' then [r,       c + 0.5]
+      when 'up'    then [r - 0.5, c      ]
+      when 'down'  then [r + 0.5, c      ]
 
   bump = (entity) ->
     switch entity.facing
-      when 'left' then entity.x -= entity.speed
+      when 'left'  then entity.x -= entity.speed
       when 'right' then entity.x += entity.speed
-      when 'up' then entity.y -= entity.speed
-      when 'down' then entity.y += entity.speed
+      when 'up'    then entity.y -= entity.speed
+      when 'down'  then entity.y += entity.speed
     null
 
   start_moving = (entity, direction) ->
@@ -222,10 +221,10 @@ $(document).ready () ->
   
   clockwise = (dir) ->
     switch dir
-      when 'up' then 'right'
+      when 'up'    then 'right'
       when 'right' then 'down'
-      when 'down' then 'left'
-      when 'left' then 'up'
+      when 'down'  then 'left'
+      when 'left'  then 'up'
   
   move_player = (entity) ->
     # smooth movement: if you're going one dir towards a wall, you can
@@ -313,58 +312,52 @@ $(document).ready () ->
 
   delete_entities = ->
     new_floor = []
-    new_body = []
-    
+    new_body  = []
     for entity in floor_entities
       unless is_in entity, floor_to_delete
         new_floor.push entity
     for entity in body_entities
       unless is_in entity, body_to_delete
         new_body.push entity
-    
-    floor_entities = new_floor
-    body_entities = new_body
+    floor_entities  = new_floor
+    body_entities   = new_body
     floor_to_delete = []
-    body_to_delete = []
+    body_to_delete  = []
     null
 
   add_entities = ->
     floor_entities = floor_entities.concat(floor_to_add)
-    body_entities = body_entities.concat(body_to_add)
-    floor_to_add = []
-    body_to_add = []
+    body_entities  = body_entities.concat(body_to_add)
+    floor_to_add   = []
+    body_to_add    = []
     null
+  
+  keys =
+    37: 'left'
+    38: 'up'
+    39: 'right'
+    40: 'down'
+    87: 'up'    # W
+    65: 'left'  # A
+    83: 'down'  # S
+    68: 'right' # D
 
   $(document).keydown (evt) ->
-    switch evt.which
-      when 37 then keys_down['left'] = true
-      when 38 then keys_down['up'] = true
-      when 39 then keys_down['right'] = true
-      when 40 then keys_down['down'] = true
-      when 87 then keys_down['up'] = true
-      when 65 then keys_down['left'] = true
-      when 83 then keys_down['down'] = true
-      when 68 then keys_down['right'] = true
+    if key = keys[evt.which]
+      keys_down[key] = true
     null
 
   $(document).keyup (evt) ->
-    switch evt.which
-      when 37 then delete keys_down['left']
-      when 38 then delete keys_down['up']
-      when 39 then delete keys_down['right']
-      when 40 then delete keys_down['down']
-      when 87 then delete keys_down['up']
-      when 65 then delete keys_down['left']
-      when 83 then delete keys_down['down']
-      when 68 then delete keys_down['right']
+    if key = keys[evt.which]
+      delete keys_down[key]
     null
 
   window.requestAnimFrame = (->
-    window.requestAnimationFrame or
+    window.requestAnimationFrame       or
     window.webkitRequestAnimationFrame or
-    window.mozRequestAnimationFrame or
-    window.oRequestAnimationFrame or
-    window.msRequestAnimationFrame or
+    window.mozRequestAnimationFrame    or
+    window.oRequestAnimationFrame      or
+    window.msRequestAnimationFrame     or
     (callback) ->
       window.setTimeout callback, 1000 / 60
   )()

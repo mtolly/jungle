@@ -2,7 +2,7 @@
 (function() {
 
   $(document).ready(function() {
-    var add_entities, anim_frame, anim_subframe, animloop, apples, body_entities, body_to_add, body_to_delete, bridges, bump, can_move, canvas, canvas_height, canvas_width, check_movement, check_pickup, clockwise, ctx, delete_entities, draw_debug, draw_entities, draw_scenery, entity_square, floor_entities, floor_to_add, floor_to_delete, frame, getImage, get_next_square, imageURL, images, is_in, is_occupied, keys_down, letters, makeImage, move_gazelle, move_player, move_rhino, newBody, newFloor, newTile, num_columns, num_rows, scenery, square_height, square_width, start_moving, status, update_entities, walkable_bg, word;
+    var add_entities, anim_frame, anim_subframe, animloop, apples, body_entities, body_to_add, body_to_delete, bridges, bump, can_move, canvas, canvas_height, canvas_width, check_movement, check_pickup, clockwise, ctx, delete_entities, draw_debug, draw_entities, draw_scenery, entity_square, floor_entities, floor_to_add, floor_to_delete, frame, getImage, get_next_square, imageURL, images, is_in, is_occupied, keys, keys_down, letters, makeImage, move_gazelle, move_player, move_rhino, newBody, newFloor, newTile, num_columns, num_rows, scenery, square_height, square_width, start_moving, status, update_entities, walkable_bg, word;
     frame = 0;
     anim_frame = 0;
     anim_subframe = 0;
@@ -416,59 +416,27 @@
       body_to_add = [];
       return null;
     };
+    keys = {
+      37: 'left',
+      38: 'up',
+      39: 'right',
+      40: 'down',
+      87: 'up',
+      65: 'left',
+      83: 'down',
+      68: 'right'
+    };
     $(document).keydown(function(evt) {
-      switch (evt.which) {
-        case 37:
-          keys_down['left'] = true;
-          break;
-        case 38:
-          keys_down['up'] = true;
-          break;
-        case 39:
-          keys_down['right'] = true;
-          break;
-        case 40:
-          keys_down['down'] = true;
-          break;
-        case 87:
-          keys_down['up'] = true;
-          break;
-        case 65:
-          keys_down['left'] = true;
-          break;
-        case 83:
-          keys_down['down'] = true;
-          break;
-        case 68:
-          keys_down['right'] = true;
+      var key;
+      if (key = keys[evt.which]) {
+        keys_down[key] = true;
       }
       return null;
     });
     $(document).keyup(function(evt) {
-      switch (evt.which) {
-        case 37:
-          delete keys_down['left'];
-          break;
-        case 38:
-          delete keys_down['up'];
-          break;
-        case 39:
-          delete keys_down['right'];
-          break;
-        case 40:
-          delete keys_down['down'];
-          break;
-        case 87:
-          delete keys_down['up'];
-          break;
-        case 65:
-          delete keys_down['left'];
-          break;
-        case 83:
-          delete keys_down['down'];
-          break;
-        case 68:
-          delete keys_down['right'];
+      var key;
+      if (key = keys[evt.which]) {
+        delete keys_down[key];
       }
       return null;
     });
