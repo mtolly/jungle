@@ -254,7 +254,7 @@ $(document).ready () ->
               if can_move entity, dir
                 start_moving entity, dir
                 return
-          entity.facing = cw0 # if we don't move, don't change direction
+          entity.facing = cw0 if no_keys || keys_down[cw0]
         when 'gazelle'
           cw0 = entity.facing
           cw1 = clockwise cw0

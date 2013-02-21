@@ -311,7 +311,9 @@
                 }
               }
             }
-            entity.facing = cw0;
+            if (no_keys || keys_down[cw0]) {
+              entity.facing = cw0;
+            }
             break;
           case 'gazelle':
             cw0 = entity.facing;
