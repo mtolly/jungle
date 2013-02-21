@@ -159,8 +159,10 @@
         }
         cx = column * square_width;
         ry = row * square_height;
-        if ((cx - square_width < (_ref = entity.x) && _ref < cx + square_width) && (ry - square_height < (_ref1 = entity.y) && _ref1 < ry + square_height)) {
-          return true;
+        if ((cx - square_width < (_ref = entity.x) && _ref < cx + square_width)) {
+          if ((ry - square_height < (_ref1 = entity.y) && _ref1 < ry + square_height)) {
+            return true;
+          }
         }
       }
       return !walkable_bg(row, column);

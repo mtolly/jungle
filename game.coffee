@@ -126,7 +126,11 @@ $(document).ready () ->
           when 1 then '#00ff00'
           when 2 then '#0033ff'
           when 3 then '#006600'
-        ctx.fillRect c * square_width + 10, r * square_height + 10, square_width, square_height
+        ctx.fillRect( c * square_width + 10
+                    , r * square_height + 10
+                    , square_width
+                    , square_height
+                    )
     null
 
   draw_debug = ->
@@ -157,13 +161,17 @@ $(document).ready () ->
       continue if ignore_entity is entity
       cx = column * square_width
       ry = row * square_height
-      return true if cx - square_width < entity.x < cx + square_width and ry - square_height < entity.y < ry + square_height
+      if cx - square_width < entity.x < cx + square_width
+        if ry - square_height < entity.y < ry + square_height
+          return true
     not walkable_bg(row, column)
 
   # row and column should be multiples of 0.5.
   walkable_bg = (row, column) ->
-    return walkable_bg(row - 0.5, column) and walkable_bg(row + 0.5, column)  unless row is Math.floor(row)
-    return walkable_bg(row, column - 0.5) and walkable_bg(row, column + 0.5)  unless column is Math.floor(column)
+    unless row == Math.floor row
+      return walkable_bg(row - 0.5, column) and walkable_bg(row + 0.5, column)
+    unless column == Math.floor column
+      return walkable_bg(row, column - 0.5) and walkable_bg(row, column + 0.5)
     return false if scenery[row][column] is 2
     return false if scenery[row][column] is 3
     true
