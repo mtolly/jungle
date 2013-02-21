@@ -2,7 +2,7 @@
 (function() {
 
   $(document).ready(function() {
-    var add_entities, anim_frame, anim_subframe, animloop, apples, body_entities, body_to_add, body_to_delete, bridges, bump, can_move, canvas, canvas_height, canvas_width, check_movement, check_pickup, clockwise, ctx, delete_entities, draw_debug, draw_entities, draw_scenery, entity_square, floor_entities, floor_to_add, floor_to_delete, frame, getImage, get_next_square, imageURL, images, is_in, is_occupied, keys_down, letters, makeImage, newBody, newFloor, newTile, num_columns, num_rows, scenery, square_height, square_width, start_moving, status, update_entities, walkable_bg, word;
+    var add_entities, anim_frame, anim_subframe, animloop, apples, body_entities, body_to_add, body_to_delete, bridges, bump, can_move, canvas, canvas_height, canvas_width, check_movement, check_pickup, clockwise, ctx, delete_entities, draw_debug, draw_entities, draw_scenery, entity_square, floor_entities, floor_to_add, floor_to_delete, frame, getImage, get_next_square, imageURL, images, is_in, is_occupied, keys_down, letters, makeImage, move_gazelle, move_player, move_rhino, newBody, newFloor, newTile, num_columns, num_rows, scenery, square_height, square_width, start_moving, status, update_entities, walkable_bg, word;
     frame = 0;
     anim_frame = 0;
     anim_subframe = 0;
@@ -265,8 +265,79 @@
           return 'up';
       }
     };
+    move_player = function(entity) {
+      var cw0, cw1, cw2, cw3, dir, no_keys, _i, _len, _ref;
+      cw0 = entity.facing;
+      cw1 = clockwise(cw0);
+      cw2 = clockwise(cw1);
+      cw3 = clockwise(cw2);
+      no_keys = true;
+      _ref = [cw0, cw1, cw2, cw3];
+      for (_i = 0, _len = _ref.length; _i < _len; _i++) {
+        dir = _ref[_i];
+        if (keys_down[dir]) {
+          no_keys = false;
+          entity.facing = dir;
+          if (can_move(entity, dir)) {
+            start_moving(entity, dir);
+            return;
+          }
+        }
+      }
+      if (no_keys || keys_down[cw0]) {
+        entity.facing = cw0;
+      }
+      return null;
+    };
+    move_gazelle = function(entity) {
+      var cw0, cw1, cw2, cw3, dir, walled_now, walls, _i, _j, _k, _len, _len1, _len2, _ref, _ref1, _ref2;
+      cw0 = entity.facing;
+      cw1 = clockwise(cw0);
+      cw2 = clockwise(cw1);
+      cw3 = clockwise(cw2);
+      walls = {};
+      walled_now = false;
+      _ref = ['up', 'down', 'left', 'right'];
+      for (_i = 0, _len = _ref.length; _i < _len; _i++) {
+        dir = _ref[_i];
+        if (!can_move(entity, dir)) {
+          walls[dir] = walled_now = true;
+        }
+      }
+      if (entity.walled) {
+        _ref1 = [cw1, cw0, cw3, cw2];
+        for (_j = 0, _len1 = _ref1.length; _j < _len1; _j++) {
+          dir = _ref1[_j];
+          if (!walls[dir]) {
+            start_moving(entity, dir);
+            break;
+          }
+        }
+      } else {
+        _ref2 = [cw0, cw3, cw2, cw1];
+        for (_k = 0, _len2 = _ref2.length; _k < _len2; _k++) {
+          dir = _ref2[_k];
+          if (!walls[dir]) {
+            start_moving(entity, dir);
+            break;
+          }
+        }
+      }
+      entity.walled = walled_now;
+      return null;
+    };
+    move_rhino = function(entity) {
+      var dir, opp;
+      dir = entity.facing;
+      opp = clockwise(clockwise(dir));
+      if (can_move(entity, dir)) {
+        start_moving(entity, dir);
+      } else if (can_move(entity, opp)) {
+        start_moving(entity, opp);
+      }
+      return null;
+    };
     check_movement = function(entity) {
-      var cw0, cw1, cw2, cw3, dir, no_keys, opp, walled_now, walls, _i, _j, _k, _l, _len, _len1, _len2, _len3, _ref, _ref1, _ref2, _ref3;
       switch (entity.state) {
         case 'moving':
           entity.was_moving = true;
@@ -282,70 +353,13 @@
           entity.was_moving = false;
           switch (entity.sprite) {
             case 'player':
-              cw0 = entity.facing;
-              cw1 = clockwise(cw0);
-              cw2 = clockwise(cw1);
-              cw3 = clockwise(cw2);
-              no_keys = true;
-              _ref = [cw0, cw1, cw2, cw3];
-              for (_i = 0, _len = _ref.length; _i < _len; _i++) {
-                dir = _ref[_i];
-                if (keys_down[dir]) {
-                  no_keys = false;
-                  entity.facing = dir;
-                  if (can_move(entity, dir)) {
-                    start_moving(entity, dir);
-                    return;
-                  }
-                }
-              }
-              if (no_keys || keys_down[cw0]) {
-                entity.facing = cw0;
-              }
+              move_player(entity);
               break;
             case 'gazelle':
-              cw0 = entity.facing;
-              cw1 = clockwise(cw0);
-              cw2 = clockwise(cw1);
-              cw3 = clockwise(cw2);
-              walls = {};
-              walled_now = false;
-              _ref1 = ['up', 'down', 'left', 'right'];
-              for (_j = 0, _len1 = _ref1.length; _j < _len1; _j++) {
-                dir = _ref1[_j];
-                if (!can_move(entity, dir)) {
-                  walls[dir] = walled_now = true;
-                }
-              }
-              if (entity.walled) {
-                _ref2 = [cw1, cw0, cw3, cw2];
-                for (_k = 0, _len2 = _ref2.length; _k < _len2; _k++) {
-                  dir = _ref2[_k];
-                  if (!walls[dir]) {
-                    start_moving(entity, dir);
-                    break;
-                  }
-                }
-              } else {
-                _ref3 = [cw0, cw3, cw2, cw1];
-                for (_l = 0, _len3 = _ref3.length; _l < _len3; _l++) {
-                  dir = _ref3[_l];
-                  if (!walls[dir]) {
-                    start_moving(entity, dir);
-                    break;
-                  }
-                }
-              }
-              entity.walled = walled_now;
+              move_gazelle(entity);
               break;
             case 'rhino':
-              dir = entity.facing;
-              opp = clockwise(clockwise(dir));
-              if (can_move(entity, dir)) {
-                start_moving(entity, dir);
-              } else if (can_move(entity, opp)) {
-                start_moving(entity, opp);
-              }
+              move_rhino(entity);
           }
       }
       return null;

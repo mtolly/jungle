@@ -226,6 +226,58 @@ $(document).ready () ->
       when 'right' then 'down'
       when 'down' then 'left'
       when 'left' then 'up'
+  
+  move_player = (entity) ->
+    # smooth movement: if you're going one dir towards a wall, you can
+    # make an instant turn by holding the turn direction before you hit
+    # the wall.
+    cw0 = entity.facing
+    cw1 = clockwise cw0
+    cw2 = clockwise cw1
+    cw3 = clockwise cw2
+    no_keys = true
+    for dir in [cw0, cw1, cw2, cw3]
+      if keys_down[dir]
+        no_keys = false
+        entity.facing = dir
+        if can_move entity, dir
+          start_moving entity, dir
+          return
+    entity.facing = cw0 if no_keys || keys_down[cw0]
+    null
+  
+  move_gazelle = (entity) ->
+    cw0 = entity.facing
+    cw1 = clockwise cw0
+    cw2 = clockwise cw1
+    cw3 = clockwise cw2
+    walls = {}
+    walled_now = false
+    for dir in ['up', 'down', 'left', 'right']
+      if not can_move entity, dir
+        walls[dir] = walled_now = true
+    if entity.walled
+      # gazelle was touching an obstacle when last moved
+      for dir in [cw1, cw0, cw3, cw2]
+        unless walls[dir]
+          start_moving entity, dir
+          break
+    else
+      for dir in [cw0, cw3, cw2, cw1]
+        unless walls[dir]
+          start_moving entity, dir
+          break
+    entity.walled = walled_now
+    null
+  
+  move_rhino = (entity) ->
+    dir = entity.facing
+    opp = clockwise clockwise dir
+    if can_move entity, dir
+      start_moving entity, dir
+    else if can_move entity, opp
+      start_moving entity, opp
+    null
 
   # Handles updating the moving/stopped state, and applying movement to
   # position.
@@ -240,52 +292,9 @@ $(document).ready () ->
       when 'stopped'
         entity.was_moving = false
         switch entity.sprite
-          when 'player'
-            # smooth movement: if you're going one dir towards a wall, you can
-            # make an instant turn by holding the turn direction before you hit
-            # the wall.
-            cw0 = entity.facing
-            cw1 = clockwise cw0
-            cw2 = clockwise cw1
-            cw3 = clockwise cw2
-            no_keys = true
-            for dir in [cw0, cw1, cw2, cw3]
-              if keys_down[dir]
-                no_keys = false
-                entity.facing = dir
-                if can_move entity, dir
-                  start_moving entity, dir
-                  return
-            entity.facing = cw0 if no_keys || keys_down[cw0]
-          when 'gazelle'
-            cw0 = entity.facing
-            cw1 = clockwise cw0
-            cw2 = clockwise cw1
-            cw3 = clockwise cw2
-            walls = {}
-            walled_now = false
-            for dir in ['up', 'down', 'left', 'right']
-              if not can_move entity, dir
-                walls[dir] = walled_now = true
-            if entity.walled
-              # gazelle was touching an obstacle when last moved
-              for dir in [cw1, cw0, cw3, cw2]
-                unless walls[dir]
-                  start_moving entity, dir
-                  break
-            else
-              for dir in [cw0, cw3, cw2, cw1]
-                unless walls[dir]
-                  start_moving entity, dir
-                  break
-            entity.walled = walled_now
-          when 'rhino'
-            dir = entity.facing
-            opp = clockwise clockwise dir
-            if can_move entity, dir
-              start_moving entity, dir
-            else if can_move entity, opp
-              start_moving entity, opp
+          when 'player'  then move_player  entity
+          when 'gazelle' then move_gazelle entity
+          when 'rhino'   then move_rhino   entity
     null
 
   can_move = (entity, direction) ->
