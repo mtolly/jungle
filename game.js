@@ -43,7 +43,8 @@
         y: r * square_height,
         facing: 'down',
         state: 'stopped',
-        speed: 2
+        speed: 2,
+        was_moving: false
       };
       for (k in misc) {
         v = misc[k];
@@ -73,22 +74,14 @@
           return "img/floor/apple.png";
         case "bridge":
           return "img/floor/bridge.png";
-        case "player":
-          switch (entity.state) {
-            case "stopped":
-              return "img/player/stopped/" + entity.facing + ".png";
-            case "moving":
-              return "img/player/moving/" + entity.facing + "/" + anim_frame + ".png";
-          }
-          break;
         case "dartdemon":
           return "img/dartdemon/" + entity.facing + ".png";
-        case "gazelle":
-          switch (entity.state) {
-            case "stopped":
-              return "img/gazelle/stopped/" + entity.facing + ".png";
-            case "moving":
-              return "img/gazelle/moving/" + entity.facing + "/" + anim_frame + ".png";
+        default:
+          switch ((entity.was_moving ? 'moving' : entity.state)) {
+            case 'stopped':
+              return "img/" + entity.sprite + "/stopped/" + entity.facing + ".png";
+            case 'moving':
+              return "img/" + entity.sprite + "/moving/" + entity.facing + "/" + anim_frame + ".png";
           }
       }
     };
@@ -283,82 +276,86 @@
     };
     check_movement = function(entity) {
       var cw0, cw1, cw2, cw3, dir, no_keys, opp, walled_now, walls, _i, _j, _k, _l, _len, _len1, _len2, _len3, _ref, _ref1, _ref2, _ref3;
-      if (entity.state === "moving") {
-        bump(entity);
-        if (entity_square(entity)) {
-          entity.state = "stopped";
-          if (entity.sprite === "player") {
-            check_pickup(entity.x, entity.y);
+      switch (entity.state) {
+        case 'moving':
+          entity.was_moving = true;
+          bump(entity);
+          if (entity_square(entity)) {
+            entity.state = "stopped";
+            if (entity.sprite === "player") {
+              check_pickup(entity.x, entity.y);
+            }
           }
-        }
-      } else if (entity.state === "stopped") {
-        switch (entity.sprite) {
-          case 'player':
-            cw0 = entity.facing;
-            cw1 = clockwise(cw0);
-            cw2 = clockwise(cw1);
-            cw3 = clockwise(cw2);
-            no_keys = true;
-            _ref = [cw0, cw1, cw2, cw3];
-            for (_i = 0, _len = _ref.length; _i < _len; _i++) {
-              dir = _ref[_i];
-              if (keys_down[dir]) {
-                no_keys = false;
-                entity.facing = dir;
-                if (can_move(entity, dir)) {
-                  start_moving(entity, dir);
-                  return;
+          break;
+        case 'stopped':
+          entity.was_moving = false;
+          switch (entity.sprite) {
+            case 'player':
+              cw0 = entity.facing;
+              cw1 = clockwise(cw0);
+              cw2 = clockwise(cw1);
+              cw3 = clockwise(cw2);
+              no_keys = true;
+              _ref = [cw0, cw1, cw2, cw3];
+              for (_i = 0, _len = _ref.length; _i < _len; _i++) {
+                dir = _ref[_i];
+                if (keys_down[dir]) {
+                  no_keys = false;
+                  entity.facing = dir;
+                  if (can_move(entity, dir)) {
+                    start_moving(entity, dir);
+                    return;
+                  }
                 }
               }
-            }
-            if (no_keys || keys_down[cw0]) {
-              entity.facing = cw0;
-            }
-            break;
-          case 'gazelle':
-            cw0 = entity.facing;
-            cw1 = clockwise(cw0);
-            cw2 = clockwise(cw1);
-            cw3 = clockwise(cw2);
-            walls = {};
-            walled_now = false;
-            _ref1 = ['up', 'down', 'left', 'right'];
-            for (_j = 0, _len1 = _ref1.length; _j < _len1; _j++) {
-              dir = _ref1[_j];
-              if (!can_move(entity, dir)) {
-                walls[dir] = walled_now = true;
+              if (no_keys || keys_down[cw0]) {
+                entity.facing = cw0;
               }
-            }
-            if (entity.walled) {
-              _ref2 = [cw1, cw0, cw3, cw2];
-              for (_k = 0, _len2 = _ref2.length; _k < _len2; _k++) {
-                dir = _ref2[_k];
-                if (!walls[dir]) {
-                  start_moving(entity, dir);
-                  break;
+              break;
+            case 'gazelle':
+              cw0 = entity.facing;
+              cw1 = clockwise(cw0);
+              cw2 = clockwise(cw1);
+              cw3 = clockwise(cw2);
+              walls = {};
+              walled_now = false;
+              _ref1 = ['up', 'down', 'left', 'right'];
+              for (_j = 0, _len1 = _ref1.length; _j < _len1; _j++) {
+                dir = _ref1[_j];
+                if (!can_move(entity, dir)) {
+                  walls[dir] = walled_now = true;
                 }
               }
-            } else {
-              _ref3 = [cw0, cw3, cw2, cw1];
-              for (_l = 0, _len3 = _ref3.length; _l < _len3; _l++) {
-                dir = _ref3[_l];
-                if (!walls[dir]) {
-                  start_moving(entity, dir);
-                  break;
+              if (entity.walled) {
+                _ref2 = [cw1, cw0, cw3, cw2];
+                for (_k = 0, _len2 = _ref2.length; _k < _len2; _k++) {
+                  dir = _ref2[_k];
+                  if (!walls[dir]) {
+                    start_moving(entity, dir);
+                    break;
+                  }
+                }
+              } else {
+                _ref3 = [cw0, cw3, cw2, cw1];
+                for (_l = 0, _len3 = _ref3.length; _l < _len3; _l++) {
+                  dir = _ref3[_l];
+                  if (!walls[dir]) {
+                    start_moving(entity, dir);
+                    break;
+                  }
                 }
               }
-            }
-            entity.walled = walled_now;
-            break;
-          case 'rhino':
-            dir = entity.facing;
-            opp = clockwise(clockwise(dir));
-            if (can_move(entity, dir)) {
-              start_moving(entity, dir);
-            } else if (can_move(entity, opp)) {
-              start_moving(entity, opp);
-            }
-        }
+              entity.walled = walled_now;
+              break;
+            case 'rhino':
+              dir = entity.facing;
+              opp = clockwise(clockwise(dir));
+              if (can_move(entity, dir)) {
+                start_moving(entity, dir);
+              } else if (can_move(entity, opp)) {
+                start_moving(entity, opp);
+              }
+          }
       }
       return null;
     };

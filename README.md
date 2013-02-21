@@ -11,9 +11,9 @@ TODO
 
 * Laying bridges
 
-* More animals/demons
+* Pushing boulders, vehicles, apple'd animals
 
-* Fix animation so "standing" sprite isn't shown during constant movement
+* More animals/demons
 
 * Travel on raft at begin/end of level
 
