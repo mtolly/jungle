@@ -292,9 +292,6 @@
           }
         }
       } else if (entity.state === "stopped") {
-        if (!entity_square(entity)) {
-          console.log('foo');
-        }
         switch (entity.sprite) {
           case 'player':
             cw0 = entity.facing;

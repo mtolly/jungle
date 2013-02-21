@@ -237,8 +237,6 @@ $(document).ready () ->
         entity.state = "stopped"
         check_pickup entity.x, entity.y if entity.sprite is "player"
     else if entity.state is "stopped"
-      unless entity_square entity
-        console.log('foo')
       switch entity.sprite
         when 'player'
           # smooth movement: if you're going one dir towards a wall, you can
