@@ -19,7 +19,7 @@
     bridges = 0;
     newTile = function(letter, r, c) {
       return {
-        sprite: "tile",
+        sprite: 'tile',
         x: c * square_width,
         y: r * square_height,
         letter: letter
@@ -68,13 +68,13 @@
     images = {};
     imageURL = function(entity) {
       switch (entity.sprite) {
-        case "tile":
+        case 'tile':
           return "img/floor/tile/" + entity.letter + ".png";
-        case "apple":
-          return "img/floor/apple.png";
-        case "bridge":
-          return "img/floor/bridge.png";
-        case "dartdemon":
+        case 'apple':
+          return 'img/floor/apple.png';
+        case 'bridge':
+          return 'img/floor/bridge.png';
+        case 'dartdemon':
           return "img/dartdemon/" + entity.facing + ".png";
         default:
           switch ((entity.was_moving ? 'moving' : entity.state)) {
@@ -88,9 +88,6 @@
     getImage = function(entity) {
       var img, url;
       url = imageURL(entity);
-      if (!url) {
-        console.log(entity.sprite + entity.state);
-      }
       if (img = images[url]) {
         return img;
       } else {
@@ -105,24 +102,24 @@
     body_to_add = [];
     body_to_delete = [];
     status = 'playing';
-    canvas = $("#canvas")[0];
-    ctx = canvas.getContext("2d");
+    canvas = $('#canvas')[0];
+    ctx = canvas.getContext('2d');
     draw_scenery = function() {
       var c, r, _i, _j, _ref, _ref1;
-      ctx.fillStyle = "black";
+      ctx.fillStyle = 'black';
       ctx.fillRect(0, 0, canvas_width, canvas_height);
       for (r = _i = 0, _ref = num_rows - 1; 0 <= _ref ? _i <= _ref : _i >= _ref; r = 0 <= _ref ? ++_i : --_i) {
         for (c = _j = 0, _ref1 = num_columns - 1; 0 <= _ref1 ? _j <= _ref1 : _j >= _ref1; c = 0 <= _ref1 ? ++_j : --_j) {
           ctx.fillStyle = (function() {
             switch (scenery[r][c]) {
               case 0:
-                return "#ffffcc";
+                return '#ffffcc';
               case 1:
-                return "#00ff00";
+                return '#00ff00';
               case 2:
-                return "#0033ff";
+                return '#0033ff';
               case 3:
-                return "#006600";
+                return '#006600';
             }
           })();
           ctx.fillRect(c * square_width + 10, r * square_height + 10, square_width, square_height);
@@ -131,22 +128,14 @@
       return null;
     };
     draw_debug = function() {
-      var frameText;
-      ctx.fillStyle = "white";
-      frameText = Math.floor(frame / 60) + " | " + (frame % 60);
-      ctx.fillText(frameText, 10, 410);
+      var status_text;
+      ctx.fillStyle = 'white';
+      ctx.fillText("" + (Math.floor(frame / 60)) + " | " + (frame % 60), 10, 410);
       ctx.fillText("Letters: " + letters, 10, 425);
-      ctx.fillText(apples + " apples, " + bridges + " bridges", 10, 440);
+      ctx.fillText("" + apples + " apples, " + bridges + " bridges", 10, 440);
       ctx.fillText("Target word: " + word, 10, 455);
-      if (status === "dead") {
-        ctx.fillText("Dead...", 10, 470);
-      } else if (letters === word) {
-        ctx.fillText("Victory!", 10, 470);
-      } else if (word.indexOf(letters) === 0) {
-        ctx.fillText("Playing", 10, 470);
-      } else {
-        ctx.fillText("Failure...", 10, 470);
-      }
+      status_text = status === 'dead' ? 'Dead...' : letters === word ? 'Victory!' : word.indexOf(letters) === 0 ? 'Playing' : 'Failure...';
+      ctx.fillText(status_text, 10, 470);
       return null;
     };
     draw_entities = function() {
@@ -207,35 +196,35 @@
       var c, r, _ref;
       _ref = entity_square(entity), r = _ref[0], c = _ref[1];
       switch (direction) {
-        case "left":
+        case 'left':
           return [r, c - 0.5];
-        case "right":
+        case 'right':
           return [r, c + 0.5];
-        case "up":
+        case 'up':
           return [r - 0.5, c];
-        case "down":
+        case 'down':
           return [r + 0.5, c];
       }
     };
     bump = function(entity) {
       switch (entity.facing) {
-        case "left":
+        case 'left':
           entity.x -= entity.speed;
           break;
-        case "right":
+        case 'right':
           entity.x += entity.speed;
           break;
-        case "up":
+        case 'up':
           entity.y -= entity.speed;
           break;
-        case "down":
+        case 'down':
           entity.y += entity.speed;
       }
       return null;
     };
     start_moving = function(entity, direction) {
       entity.facing = direction;
-      entity.state = "moving";
+      entity.state = 'moving';
       bump(entity);
       return null;
     };
@@ -246,16 +235,16 @@
         if (entity.x === x && entity.y === y) {
           floor_to_delete.push(entity);
           switch (entity.sprite) {
-            case "tile":
+            case 'tile':
               letters += entity.letter;
               if (letters === word) {
-                status = "complete";
+                status = 'complete';
               }
               break;
-            case "apple":
+            case 'apple':
               apples++;
               break;
-            case "bridge":
+            case 'bridge':
               bridges++;
           }
         }
@@ -281,8 +270,8 @@
           entity.was_moving = true;
           bump(entity);
           if (entity_square(entity)) {
-            entity.state = "stopped";
-            if (entity.sprite === "player") {
+            entity.state = 'stopped';
+            if (entity.sprite === 'player') {
               check_pickup(entity.x, entity.y);
             }
           }
@@ -414,32 +403,56 @@
     $(document).keydown(function(evt) {
       switch (evt.which) {
         case 37:
-          keys_down["left"] = true;
+          keys_down['left'] = true;
           break;
         case 38:
-          keys_down["up"] = true;
+          keys_down['up'] = true;
           break;
         case 39:
-          keys_down["right"] = true;
+          keys_down['right'] = true;
           break;
         case 40:
-          keys_down["down"] = true;
+          keys_down['down'] = true;
+          break;
+        case 87:
+          keys_down['up'] = true;
+          break;
+        case 65:
+          keys_down['left'] = true;
+          break;
+        case 83:
+          keys_down['down'] = true;
+          break;
+        case 68:
+          keys_down['right'] = true;
       }
       return null;
     });
     $(document).keyup(function(evt) {
       switch (evt.which) {
         case 37:
-          delete keys_down["left"];
+          delete keys_down['left'];
           break;
         case 38:
-          delete keys_down["up"];
+          delete keys_down['up'];
           break;
         case 39:
-          delete keys_down["right"];
+          delete keys_down['right'];
           break;
         case 40:
-          delete keys_down["down"];
+          delete keys_down['down'];
+          break;
+        case 87:
+          delete keys_down['up'];
+          break;
+        case 65:
+          delete keys_down['left'];
+          break;
+        case 83:
+          delete keys_down['down'];
+          break;
+        case 68:
+          delete keys_down['right'];
       }
       return null;
     });

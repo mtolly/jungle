@@ -37,7 +37,7 @@ $(document).ready () ->
   bridges = 0
 
   newTile = (letter, r, c) ->
-    sprite: "tile"
+    sprite: 'tile'
     x: c * square_width
     y: r * square_height
     letter: letter
@@ -83,11 +83,10 @@ $(document).ready () ->
 
   imageURL = (entity) ->
     switch entity.sprite
-      when "tile" then "img/floor/tile/" + entity.letter + ".png"
-      when "apple" then "img/floor/apple.png"
-      when "bridge" then "img/floor/bridge.png"
-      when "dartdemon"
-        "img/dartdemon/" + entity.facing + ".png"
+      when 'tile' then "img/floor/tile/#{entity.letter}.png"
+      when 'apple' then 'img/floor/apple.png'
+      when 'bridge' then 'img/floor/bridge.png'
+      when 'dartdemon' then "img/dartdemon/#{entity.facing}.png"
       else # moving body entities
         switch (if entity.was_moving then 'moving' else entity.state)
           when 'stopped'
@@ -97,7 +96,6 @@ $(document).ready () ->
 
   getImage = (entity) ->
     url = imageURL(entity)
-    console.log(entity.sprite + entity.state) if not url
     if img = images[url] then img
     else
       img = makeImage url
@@ -115,37 +113,35 @@ $(document).ready () ->
   # 'playing', 'dead', 'complete'
   status = 'playing'
 
-  canvas = $("#canvas")[0]
-  ctx = canvas.getContext("2d")
+  canvas = $('#canvas')[0]
+  ctx = canvas.getContext('2d')
 
   draw_scenery = ->
-    ctx.fillStyle = "black"
+    ctx.fillStyle = 'black'
     ctx.fillRect 0, 0, canvas_width, canvas_height
     for r in [0 .. num_rows - 1]
       for c in [0 .. num_columns - 1]
         ctx.fillStyle = switch scenery[r][c]
-          when 0 then "#ffffcc"
-          when 1 then "#00ff00"
-          when 2 then "#0033ff"
-          when 3 then "#006600"
+          when 0 then '#ffffcc'
+          when 1 then '#00ff00'
+          when 2 then '#0033ff'
+          when 3 then '#006600'
         ctx.fillRect c * square_width + 10, r * square_height + 10, square_width, square_height
     null
 
   draw_debug = ->
-    ctx.fillStyle = "white"
-    frameText = Math.floor(frame / 60) + " | " + (frame % 60)
-    ctx.fillText frameText, 10, 410
-    ctx.fillText "Letters: " + letters, 10, 425
-    ctx.fillText apples + " apples, " + bridges + " bridges", 10, 440
-    ctx.fillText "Target word: " + word, 10, 455
-    if status is "dead"
-      ctx.fillText "Dead...", 10, 470
-    else if letters is word
-      ctx.fillText "Victory!", 10, 470
-    else if word.indexOf(letters) is 0
-      ctx.fillText "Playing", 10, 470
-    else
-      ctx.fillText "Failure...", 10, 470
+    ctx.fillStyle = 'white'
+    ctx.fillText "#{Math.floor(frame / 60)} | #{(frame % 60)}", 10, 410
+    ctx.fillText "Letters: #{letters}", 10, 425
+    ctx.fillText "#{apples} apples, #{bridges} bridges", 10, 440
+    ctx.fillText "Target word: #{word}", 10, 455
+    
+    status_text =
+      if status is 'dead' then 'Dead...'
+      else if letters is word then 'Victory!'
+      else if word.indexOf(letters) is 0 then 'Playing'
+      else 'Failure...'
+    ctx.fillText status_text, 10, 470
     null
 
   draw_entities = ->
@@ -185,22 +181,22 @@ $(document).ready () ->
   get_next_square = (entity, direction) ->
     [r, c] = entity_square(entity)
     switch direction
-      when "left" then [r, c - 0.5]
-      when "right" then [r, c + 0.5]
-      when "up" then [r - 0.5, c]
-      when "down" then [r + 0.5, c]
+      when 'left' then [r, c - 0.5]
+      when 'right' then [r, c + 0.5]
+      when 'up' then [r - 0.5, c]
+      when 'down' then [r + 0.5, c]
 
   bump = (entity) ->
     switch entity.facing
-      when "left" then entity.x -= entity.speed
-      when "right" then entity.x += entity.speed
-      when "up" then entity.y -= entity.speed
-      when "down" then entity.y += entity.speed
+      when 'left' then entity.x -= entity.speed
+      when 'right' then entity.x += entity.speed
+      when 'up' then entity.y -= entity.speed
+      when 'down' then entity.y += entity.speed
     null
 
   start_moving = (entity, direction) ->
     entity.facing = direction
-    entity.state = "moving"
+    entity.state = 'moving'
     bump entity
     null
 
@@ -209,11 +205,11 @@ $(document).ready () ->
       if entity.x is x and entity.y is y
         floor_to_delete.push entity
         switch entity.sprite
-          when "tile"
+          when 'tile'
             letters += entity.letter
-            status = "complete" if letters is word
-          when "apple"  then apples++
-          when "bridge" then bridges++
+            status = 'complete' if letters is word
+          when 'apple'  then apples++
+          when 'bridge' then bridges++
     null
   
   clockwise = (dir) ->
@@ -231,8 +227,8 @@ $(document).ready () ->
         entity.was_moving = true
         bump entity
         if entity_square entity
-          entity.state = "stopped"
-          check_pickup entity.x, entity.y if entity.sprite is "player"
+          entity.state = 'stopped'
+          check_pickup entity.x, entity.y if entity.sprite is 'player'
       when 'stopped'
         entity.was_moving = false
         switch entity.sprite
@@ -324,18 +320,26 @@ $(document).ready () ->
 
   $(document).keydown (evt) ->
     switch evt.which
-      when 37 then keys_down["left"] = true
-      when 38 then keys_down["up"] = true
-      when 39 then keys_down["right"] = true
-      when 40 then keys_down["down"] = true
+      when 37 then keys_down['left'] = true
+      when 38 then keys_down['up'] = true
+      when 39 then keys_down['right'] = true
+      when 40 then keys_down['down'] = true
+      when 87 then keys_down['up'] = true
+      when 65 then keys_down['left'] = true
+      when 83 then keys_down['down'] = true
+      when 68 then keys_down['right'] = true
     null
 
   $(document).keyup (evt) ->
     switch evt.which
-      when 37 then delete keys_down["left"]
-      when 38 then delete keys_down["up"]
-      when 39 then delete keys_down["right"]
-      when 40 then delete keys_down["down"]
+      when 37 then delete keys_down['left']
+      when 38 then delete keys_down['up']
+      when 39 then delete keys_down['right']
+      when 40 then delete keys_down['down']
+      when 87 then delete keys_down['up']
+      when 65 then delete keys_down['left']
+      when 83 then delete keys_down['down']
+      when 68 then delete keys_down['right']
     null
 
   window.requestAnimFrame = (->
