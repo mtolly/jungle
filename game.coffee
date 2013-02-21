@@ -47,13 +47,17 @@ $(document).ready () ->
     x: c * square_width
     y: r * square_height
 
-  newBody = (sprite, r, c, speed = 2) ->
-    sprite: sprite
-    x: c * square_width
-    y: r * square_height
-    facing: "down"
-    state: "stopped"
-    speed: speed
+  newBody = (sprite, r, c, misc = {}) ->
+    obj =
+      sprite: sprite
+      x: c * square_width
+      y: r * square_height
+      facing: 'down'
+      state: 'stopped'
+      speed: 2
+    for k, v of misc
+      obj[k] = v
+    obj
 
   # Entities are square-sized objects which can change state.
   floor_entities =
@@ -65,8 +69,8 @@ $(document).ready () ->
     , newFloor('apple', 5, 8)
     ]
   body_entities =
-    [ newBody('player', 5, 7, 2)
-    , newBody('gazelle', 6, 7, 4)
+    [ newBody('player', 5, 7)
+    , newBody('gazelle', 6, 7, {speed: 4, walled: false})
     ]
 
   makeImage = (src) ->
@@ -98,6 +102,7 @@ $(document).ready () ->
 
   getImage = (entity) ->
     url = imageURL(entity)
+    console.log(entity.sprite + entity.state) if not url
     if img = images[url] then img
     else
       img = makeImage url
@@ -247,10 +252,23 @@ $(document).ready () ->
           cw1 = clockwise(cw0)
           cw2 = clockwise(cw1)
           cw3 = clockwise(cw2)
-          for dir in [cw0, cw1, cw2, cw3]
-            if can_move entity, dir
-              start_moving entity, dir
-              return
+          walls = {}
+          walled_now = false
+          for dir in ['up', 'down', 'left', 'right']
+            if not can_move entity, dir
+              walls[dir] = walled_now = true
+          if entity.walled
+            # gazelle was touching an obstacle when last moved
+            for dir in [cw1, cw0, cw3, cw2]
+              unless walls[dir]
+                start_moving entity, dir
+                break
+          else
+            for dir in [cw0, cw3, cw2, cw1]
+              unless walls[dir]
+                start_moving entity, dir
+                break
+          entity.walled = walled_now
     null
 
   can_move = (entity, direction) ->

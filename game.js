@@ -32,21 +32,32 @@
         y: r * square_height
       };
     };
-    newBody = function(sprite, r, c, speed) {
-      if (speed == null) {
-        speed = 2;
+    newBody = function(sprite, r, c, misc) {
+      var k, obj, v;
+      if (misc == null) {
+        misc = {};
       }
-      return {
+      obj = {
         sprite: sprite,
         x: c * square_width,
         y: r * square_height,
-        facing: "down",
-        state: "stopped",
-        speed: speed
+        facing: 'down',
+        state: 'stopped',
+        speed: 2
       };
+      for (k in misc) {
+        v = misc[k];
+        obj[k] = v;
+      }
+      return obj;
     };
     floor_entities = [newTile('F', 3, 6), newTile('I', 2, 8), newTile('R', 2, 12), newTile('S', 6, 13), newTile('T', 8, 12), newFloor('apple', 5, 8)];
-    body_entities = [newBody('player', 5, 7, 2), newBody('gazelle', 6, 7, 4)];
+    body_entities = [
+      newBody('player', 5, 7), newBody('gazelle', 6, 7, {
+        speed: 4,
+        walled: false
+      })
+    ];
     makeImage = function(src) {
       var img;
       img = new Image();
@@ -84,6 +95,9 @@
     getImage = function(entity) {
       var img, url;
       url = imageURL(entity);
+      if (!url) {
+        console.log(entity.sprite + entity.state);
+      }
       if (img = images[url]) {
         return img;
       } else {
@@ -268,7 +282,7 @@
       }
     };
     check_movement = function(entity) {
-      var cw0, cw1, cw2, cw3, dir, kd, _i, _len, _ref;
+      var cw0, cw1, cw2, cw3, dir, kd, walled_now, walls, _i, _j, _k, _len, _len1, _len2, _ref, _ref1, _ref2;
       if (entity.state === "moving") {
         bump(entity);
         if (entity_square(entity)) {
@@ -297,14 +311,35 @@
             cw1 = clockwise(cw0);
             cw2 = clockwise(cw1);
             cw3 = clockwise(cw2);
-            _ref = [cw0, cw1, cw2, cw3];
+            walls = {};
+            walled_now = false;
+            _ref = ['up', 'down', 'left', 'right'];
             for (_i = 0, _len = _ref.length; _i < _len; _i++) {
               dir = _ref[_i];
-              if (can_move(entity, dir)) {
-                start_moving(entity, dir);
-                return;
+              if (!can_move(entity, dir)) {
+                walls[dir] = walled_now = true;
               }
             }
+            if (entity.walled) {
+              _ref1 = [cw1, cw0, cw3, cw2];
+              for (_j = 0, _len1 = _ref1.length; _j < _len1; _j++) {
+                dir = _ref1[_j];
+                if (!walls[dir]) {
+                  start_moving(entity, dir);
+                  break;
+                }
+              }
+            } else {
+              _ref2 = [cw0, cw3, cw2, cw1];
+              for (_k = 0, _len2 = _ref2.length; _k < _len2; _k++) {
+                dir = _ref2[_k];
+                if (!walls[dir]) {
+                  start_moving(entity, dir);
+                  break;
+                }
+              }
+            }
+            entity.walled = walled_now;
         }
       }
       return null;
