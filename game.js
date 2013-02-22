@@ -2,17 +2,20 @@
 (function() {
 
   $(document).ready(function() {
-    var add_entities, anim_frame, anim_subframe, animloop, apples, body_entities, body_to_add, body_to_delete, bridges, bump, can_move, canvas, canvas_height, canvas_width, check_movement, check_pickup, clockwise, clockwise_table, ctx, delete_entities, draw_debug, draw_entities, draw_scenery, entity_square, floor_entities, floor_to_add, floor_to_delete, frame, getImage, get_next_square, imageURL, images, is_in, is_occupied, keys, keys_down, letters, makeImage, move_gazelle, move_player, move_rhino, newBody, newFloor, newTile, num_columns, num_rows, scenery, square_height, square_width, start_moving, status, update_entities, walkable_bg, word;
+    var add_entities, anim_frame, anim_subframe, animloop, apples, body_entities, body_to_add, body_to_delete, bridges, bump, can_move, canvas, canvas_height, canvas_width, check_movement, check_pickup, clockwise, clockwise_table, ctx, delete_entities, draw_debug, draw_entities, draw_scenery, entity_square, floor_entities, floor_to_add, floor_to_delete, frame, getImage, getScenery, get_next_square, imageURL, images, is_in, is_occupied, keys, keys_down, letters, makeImage, move_gazelle, move_player, move_rhino, newBody, newFloor, newTile, num_columns, num_rows, scenery, square_height, square_width, start_moving, status, update_entities, walkable_bg, word;
     frame = 0;
     anim_frame = 0;
     anim_subframe = 0;
     canvas_width = 640;
     canvas_height = 480;
-    num_rows = 12;
-    num_columns = 15;
-    square_width = 32;
-    square_height = 32;
+    num_rows = 24;
+    num_columns = 30;
+    square_width = 16;
+    square_height = 16;
     scenery = [[3, 3, 3, 3, 3, 3, 3, 3, 2, 3, 3, 3, 3, 3, 3], [3, 3, 3, 3, 3, 3, 2, 2, 2, 0, 0, 0, 3, 3, 3], [3, 3, 3, 3, 3, 2, 2, 2, 0, 0, 0, 0, 0, 3, 3], [3, 3, 3, 3, 2, 2, 0, 0, 0, 0, 0, 3, 3, 3, 3], [3, 3, 3, 3, 2, 0, 0, 0, 0, 0, 0, 0, 0, 3, 3], [3, 3, 3, 3, 2, 0, 0, 0, 0, 0, 0, 0, 0, 0, 3], [3, 3, 3, 3, 2, 2, 2, 0, 0, 0, 0, 0, 0, 0, 3], [3, 3, 3, 3, 2, 2, 2, 0, 0, 0, 0, 0, 0, 0, 3], [3, 3, 3, 3, 3, 2, 2, 0, 0, 3, 3, 3, 0, 3, 3], [3, 3, 3, 3, 3, 2, 2, 2, 2, 2, 2, 3, 3, 3, 3], [3, 3, 3, 2, 2, 2, 2, 2, 2, 2, 2, 2, 3, 3, 3], [3, 3, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 3]];
+    getScenery = function(r, c) {
+      return scenery[Math.floor(r / 2)][Math.floor(c / 2)];
+    };
     word = 'FIRST';
     letters = '';
     apples = 0;
@@ -52,9 +55,9 @@
       }
       return obj;
     };
-    floor_entities = [newTile('F', 3, 6), newTile('I', 2, 8), newTile('R', 2, 12), newTile('S', 6, 13), newTile('T', 8, 12), newFloor('apple', 5, 8)];
+    floor_entities = [newTile('F', 6, 12), newTile('I', 4, 16), newTile('R', 4, 24), newTile('S', 12, 26), newTile('T', 16, 24), newFloor('apple', 10, 16)];
     body_entities = [
-      newBody('player', 5, 7), newBody('gazelle', 6, 7, {
+      newBody('player', 10, 14), newBody('gazelle', 12, 14, {
         speed: 4,
         walled: false
       })
@@ -111,7 +114,7 @@
       for (r = _i = 0, _ref = num_rows - 1; 0 <= _ref ? _i <= _ref : _i >= _ref; r = 0 <= _ref ? ++_i : --_i) {
         for (c = _j = 0, _ref1 = num_columns - 1; 0 <= _ref1 ? _j <= _ref1 : _j >= _ref1; c = 0 <= _ref1 ? ++_j : --_j) {
           ctx.fillStyle = (function() {
-            switch (scenery[r][c]) {
+            switch (getScenery(r, c)) {
               case 0:
                 return '#ffffcc';
               case 1:
@@ -159,8 +162,8 @@
         }
         cx = column * square_width;
         ry = row * square_height;
-        if ((cx - square_width < (_ref = entity.x) && _ref < cx + square_width)) {
-          if ((ry - square_height < (_ref1 = entity.y) && _ref1 < ry + square_height)) {
+        if ((cx - (square_width * 2) < (_ref = entity.x) && _ref < cx + (square_width * 2))) {
+          if ((ry - (square_height * 2) < (_ref1 = entity.y) && _ref1 < ry + (square_height * 2))) {
             return true;
           }
         }
@@ -173,8 +176,8 @@
           }
           cx = column * square_width;
           ry = row * square_height;
-          if ((cx - square_width < (_ref2 = entity.x) && _ref2 < cx + square_width)) {
-            if ((ry - square_height < (_ref3 = entity.y) && _ref3 < ry + square_height)) {
+          if ((cx - (square_width * 2) < (_ref2 = entity.x) && _ref2 < cx + (square_width * 2))) {
+            if ((ry - (square_height * 2) < (_ref3 = entity.y) && _ref3 < ry + (square_height * 2))) {
               return true;
             }
           }
@@ -183,16 +186,16 @@
       return !walkable_bg(row, column);
     };
     walkable_bg = function(row, column) {
-      if (row !== Math.floor(row)) {
-        return walkable_bg(row - 0.5, column) && walkable_bg(row + 0.5, column);
+      if (row % 2 !== 0) {
+        return walkable_bg(row - 1, column) && walkable_bg(row + 1, column);
       }
-      if (column !== Math.floor(column)) {
-        return walkable_bg(row, column - 0.5) && walkable_bg(row, column + 0.5);
+      if (column % 2 !== 0) {
+        return walkable_bg(row, column - 1) && walkable_bg(row, column + 1);
       }
-      if (scenery[row][column] === 2) {
+      if (getScenery(row, column) === 2) {
         return false;
       }
-      if (scenery[row][column] === 3) {
+      if (getScenery(row, column) === 3) {
         return false;
       }
       return true;
@@ -201,10 +204,10 @@
       var x, y;
       x = entity.x;
       y = entity.y;
-      if (x % (square_width / 2) !== 0) {
+      if (x % square_width !== 0) {
         return null;
       }
-      if (y % (square_height / 2) !== 0) {
+      if (y % square_height !== 0) {
         return null;
       }
       return [y / square_height, x / square_width];
@@ -214,13 +217,13 @@
       _ref = entity_square(entity), r = _ref[0], c = _ref[1];
       switch (direction) {
         case 'left':
-          return [r, c - 0.5];
+          return [r, c - 1];
         case 'right':
-          return [r, c + 0.5];
+          return [r, c + 1];
         case 'up':
-          return [r - 0.5, c];
+          return [r - 1, c];
         case 'down':
-          return [r + 0.5, c];
+          return [r + 1, c];
       }
     };
     bump = function(entity) {

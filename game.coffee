@@ -6,10 +6,10 @@ $(document).ready () ->
   canvas_width  = 640
   canvas_height = 480
 
-  num_rows      = 12
-  num_columns   = 15
-  square_width  = 32
-  square_height = 32
+  num_rows      = 24
+  num_columns   = 30
+  square_width  = 16
+  square_height = 16
 
   # The unchanging background of the world.
   # 0: bare
@@ -30,6 +30,9 @@ $(document).ready () ->
     , [ 3, 3, 3, 2, 2, 2, 2, 2, 2, 2, 2, 2, 3, 3, 3 ]
     , [ 3, 3, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 3 ]
     ]
+  
+  getScenery = (r, c) ->
+    scenery[Math.floor(r / 2)][Math.floor(c / 2)]
 
   word    = 'FIRST'
   letters = ''
@@ -62,16 +65,16 @@ $(document).ready () ->
 
   # Entities are square-sized objects which can change state.
   floor_entities =
-    [ newTile('F', 3, 6)
-    , newTile('I', 2, 8)
-    , newTile('R', 2, 12)
-    , newTile('S', 6, 13)
-    , newTile('T', 8, 12)
-    , newFloor('apple', 5, 8)
+    [ newTile('F', 6, 12)
+    , newTile('I', 4, 16)
+    , newTile('R', 4, 24)
+    , newTile('S', 12, 26)
+    , newTile('T', 16, 24)
+    , newFloor('apple', 10, 16)
     ]
   body_entities =
-    [ newBody('player', 5, 7)
-    , newBody('gazelle', 6, 7, {speed: 4, walled: false})
+    [ newBody('player', 10, 14)
+    , newBody('gazelle', 12, 14, {speed: 4, walled: false})
     ]
 
   makeImage = (src) ->
@@ -121,7 +124,7 @@ $(document).ready () ->
     ctx.fillRect 0, 0, canvas_width, canvas_height
     for r in [0 .. num_rows - 1]
       for c in [0 .. num_columns - 1]
-        ctx.fillStyle = switch scenery[r][c]
+        ctx.fillStyle = switch getScenery(r, c)
           when 0 then '#ffffcc'
           when 1 then '#00ff00'
           when 2 then '#0033ff'
@@ -154,14 +157,13 @@ $(document).ready () ->
       ctx.drawImage getImage(entity), entity.x + 10, entity.y + 10
     null
 
-  # row and column should be multiples of 0.5.
   is_occupied = (row, column, entity_to_move) ->
     for entity in body_entities
       continue if entity is entity_to_move
       cx = column * square_width
       ry = row * square_height
-      if cx - square_width < entity.x < cx + square_width
-        if ry - square_height < entity.y < ry + square_height
+      if cx - (square_width * 2) < entity.x < cx + (square_width * 2)
+        if ry - (square_height * 2) < entity.y < ry + (square_height * 2)
           return true
     if entity_to_move.sprite isnt 'player'
       # Non-player body entities can't walk over floor entities
@@ -169,38 +171,37 @@ $(document).ready () ->
         continue if entity is entity_to_move
         cx = column * square_width
         ry = row * square_height
-        if cx - square_width < entity.x < cx + square_width
-          if ry - square_height < entity.y < ry + square_height
+        if cx - (square_width * 2) < entity.x < cx + (square_width * 2)
+          if ry - (square_height * 2) < entity.y < ry + (square_height * 2)
             return true
     not walkable_bg(row, column)
 
-  # row and column should be multiples of 0.5.
   walkable_bg = (row, column) ->
-    unless row == Math.floor row
-      return walkable_bg(row - 0.5, column) and walkable_bg(row + 0.5, column)
-    unless column == Math.floor column
-      return walkable_bg(row, column - 0.5) and walkable_bg(row, column + 0.5)
-    return false if scenery[row][column] is 2
-    return false if scenery[row][column] is 3
+    unless row % 2 == 0
+      return walkable_bg(row - 1, column) and walkable_bg(row + 1, column)
+    unless column % 2 == 0
+      return walkable_bg(row, column - 1) and walkable_bg(row, column + 1)
+    return false if getScenery(row, column) is 2
+    return false if getScenery(row, column) is 3
     true
   
-  # returns [r, c] or null, where r and c are multiples of 0.5.
+  # returns [r, c] or null.
   entity_square = (entity) ->
     x = entity.x
     y = entity.y
-    if x % (square_width / 2) isnt 0
+    if x % square_width != 0
       return null
-    if y % (square_height / 2) isnt 0
+    if y % square_height != 0
       return null
     [y / square_height, x / square_width]
 
   get_next_square = (entity, direction) ->
     [r, c] = entity_square(entity)
     switch direction
-      when 'left'  then [r,       c - 0.5]
-      when 'right' then [r,       c + 0.5]
-      when 'up'    then [r - 0.5, c      ]
-      when 'down'  then [r + 0.5, c      ]
+      when 'left'  then [r,     c - 1]
+      when 'right' then [r,     c + 1]
+      when 'up'    then [r - 1, c    ]
+      when 'down'  then [r + 1, c    ]
 
   bump = (entity) ->
     switch entity.facing
