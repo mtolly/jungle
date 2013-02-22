@@ -1,357 +1,357 @@
-$(document).ready () ->
+canvas = null
+ctx    = null
 
-  frame         = 0
-  anim_frame    = 0 # 0 -> 1 -> 2 -> 3 -> 0, every 5th frame
-  anim_subframe = 0 # 0 -> 1 -> 2 -> 3 -> 4 -> 0, every frame
-  canvas_width  = 640
-  canvas_height = 480
+frame         = 0
+anim_frame    = 0 # 0 -> 1 -> 2 -> 3 -> 0, every 5th frame
+anim_subframe = 0 # 0 -> 1 -> 2 -> 3 -> 4 -> 0, every frame
+canvas_width  = 640
+canvas_height = 480
 
-  num_rows      = 24
-  num_columns   = 30
-  square_width  = 16
-  square_height = 16
+num_rows      = 24
+num_columns   = 30
+square_width  = 16
+square_height = 16
 
-  # The unchanging background of the world.
-  # 0: bare
-  # 1: grass
-  # 2: water
-  # 3: tree
-  scenery =
-    [ [ 3, 3, 3, 3, 3, 3, 3, 3, 2, 3, 3, 3, 3, 3, 3 ]
-    , [ 3, 3, 3, 3, 3, 3, 2, 2, 2, 0, 0, 0, 3, 3, 3 ]
-    , [ 3, 3, 3, 3, 3, 2, 2, 2, 0, 0, 0, 0, 0, 3, 3 ]
-    , [ 3, 3, 3, 3, 2, 2, 0, 0, 0, 0, 0, 3, 3, 3, 3 ]
-    , [ 3, 3, 3, 3, 2, 0, 0, 0, 0, 0, 0, 0, 0, 3, 3 ]
-    , [ 3, 3, 3, 3, 2, 0, 0, 0, 0, 0, 0, 0, 0, 0, 3 ]
-    , [ 3, 3, 3, 3, 2, 2, 2, 0, 0, 0, 0, 0, 0, 0, 3 ]
-    , [ 3, 3, 3, 3, 2, 2, 2, 0, 0, 0, 0, 0, 0, 0, 3 ]
-    , [ 3, 3, 3, 3, 3, 2, 2, 0, 0, 3, 3, 3, 0, 3, 3 ]
-    , [ 3, 3, 3, 3, 3, 2, 2, 2, 2, 2, 2, 3, 3, 3, 3 ]
-    , [ 3, 3, 3, 2, 2, 2, 2, 2, 2, 2, 2, 2, 3, 3, 3 ]
-    , [ 3, 3, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 3 ]
-    ]
-  
-  getScenery = (r, c) ->
-    scenery[Math.floor(r / 2)][Math.floor(c / 2)]
+# The unchanging background of the world.
+# 0: bare
+# 1: grass
+# 2: water
+# 3: tree
+scenery =
+  [ [ 3, 3, 3, 3, 3, 3, 3, 3, 2, 3, 3, 3, 3, 3, 3 ]
+  , [ 3, 3, 3, 3, 3, 3, 2, 2, 2, 0, 0, 0, 3, 3, 3 ]
+  , [ 3, 3, 3, 3, 3, 2, 2, 2, 0, 0, 0, 0, 0, 3, 3 ]
+  , [ 3, 3, 3, 3, 2, 2, 0, 0, 0, 0, 0, 3, 3, 3, 3 ]
+  , [ 3, 3, 3, 3, 2, 0, 0, 0, 0, 0, 0, 0, 0, 3, 3 ]
+  , [ 3, 3, 3, 3, 2, 0, 0, 0, 0, 0, 0, 0, 0, 0, 3 ]
+  , [ 3, 3, 3, 3, 2, 2, 2, 0, 0, 0, 0, 0, 0, 0, 3 ]
+  , [ 3, 3, 3, 3, 2, 2, 2, 0, 0, 0, 0, 0, 0, 0, 3 ]
+  , [ 3, 3, 3, 3, 3, 2, 2, 0, 0, 3, 3, 3, 0, 3, 3 ]
+  , [ 3, 3, 3, 3, 3, 2, 2, 2, 2, 2, 2, 3, 3, 3, 3 ]
+  , [ 3, 3, 3, 2, 2, 2, 2, 2, 2, 2, 2, 2, 3, 3, 3 ]
+  , [ 3, 3, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 3 ]
+  ]
 
-  word    = 'FIRST'
-  letters = ''
-  apples  = 0
-  bridges = 0
+getScenery = (r, c) ->
+  scenery[Math.floor(r / 2)][Math.floor(c / 2)]
 
-  newTile = (letter, r, c) ->
-    newFloor 'tile', r, c, letter: letter
+word    = 'FIRST'
+letters = ''
+apples  = 0
+bridges = 0
 
-  newFloor = (sprite, r, c, misc = {}) ->
-    obj =
-      sprite: sprite
-      x: c * square_width
-      y: r * square_height
-    for k, v of misc
-      obj[k] = v
-    obj
+newTile = (letter, r, c) ->
+  newFloor 'tile', r, c, letter: letter
 
-  newBody = (sprite, r, c, misc = {}) ->
-    obj =
-      sprite: sprite
-      x: c * square_width
-      y: r * square_height
-      facing: 'down'
-      state: 'stopped'
-      speed: 2
-      was_moving: false # true if was moving last frame
-    for k, v of misc
-      obj[k] = v
-    obj
+newFloor = (sprite, r, c, misc = {}) ->
+  obj =
+    sprite: sprite
+    x: c * square_width
+    y: r * square_height
+  for k, v of misc
+    obj[k] = v
+  obj
 
-  # Entities are square-sized objects which can change state.
-  floor_entities =
-    [ newTile('F', 6, 12)
-    , newTile('I', 4, 16)
-    , newTile('R', 4, 24)
-    , newTile('S', 12, 26)
-    , newTile('T', 16, 24)
-    , newFloor('apple', 10, 16)
-    ]
-  body_entities =
-    [ newBody('player', 10, 14)
-    , newBody('gazelle', 12, 14, speed: 4, walled: false)
-    ]
+newBody = (sprite, r, c, misc = {}) ->
+  obj =
+    sprite: sprite
+    x: c * square_width
+    y: r * square_height
+    facing: 'down'
+    state: 'stopped'
+    speed: 2
+    was_moving: false # true if was moving last frame
+  for k, v of misc
+    obj[k] = v
+  obj
 
-  makeImage = (src) ->
-    img = new Image()
-    img.src = src
+# Entities are square-sized objects which can change state.
+floor_entities =
+  [ newTile('F', 6, 12)
+  , newTile('I', 4, 16)
+  , newTile('R', 4, 24)
+  , newTile('S', 12, 26)
+  , newTile('T', 16, 24)
+  , newFloor('apple', 10, 16)
+  ]
+body_entities =
+  [ newBody('player', 10, 14)
+  , newBody('gazelle', 12, 14, speed: 4, walled: false)
+  ]
+
+makeImage = (src) ->
+  img = new Image()
+  img.src = src
+  img
+
+images = {}
+
+imageURL = (entity) ->
+  switch entity.sprite
+    when 'tile' then "img/floor/tile/#{entity.letter}.png"
+    when 'apple' then 'img/floor/apple.png'
+    when 'bridge' then 'img/floor/bridge.png'
+    when 'dartdemon' then "img/dartdemon/#{entity.facing}.png"
+    else # moving body entities
+      switch (if entity.was_moving then 'moving' else entity.state)
+        when 'stopped'
+          "img/#{entity.sprite}/stopped/#{entity.facing}.png"
+        when 'moving'
+          "img/#{entity.sprite}/moving/#{entity.facing}/#{anim_frame}.png"
+
+getImage = (entity) ->
+  url = imageURL(entity)
+  if img = images[url] then img
+  else
+    img = makeImage url
+    images[url] = img
     img
 
-  images = {}
+keys_down = {}
 
-  imageURL = (entity) ->
-    switch entity.sprite
-      when 'tile' then "img/floor/tile/#{entity.letter}.png"
-      when 'apple' then 'img/floor/apple.png'
-      when 'bridge' then 'img/floor/bridge.png'
-      when 'dartdemon' then "img/dartdemon/#{entity.facing}.png"
-      else # moving body entities
-        switch (if entity.was_moving then 'moving' else entity.state)
-          when 'stopped'
-            "img/#{entity.sprite}/stopped/#{entity.facing}.png"
-          when 'moving'
-            "img/#{entity.sprite}/moving/#{entity.facing}/#{anim_frame}.png"
+# entities which will be added/deleted on end of frame
+floor_to_add = []
+floor_to_delete = []
+body_to_add = []
+body_to_delete = []
 
-  getImage = (entity) ->
-    url = imageURL(entity)
-    if img = images[url] then img
-    else
-      img = makeImage url
-      images[url] = img
-      img
+# 'playing', 'dead', 'complete'
+status = 'playing'
 
-  keys_down = {}
+draw_scenery = ->
+  ctx.fillStyle = 'black'
+  ctx.fillRect 0, 0, canvas_width, canvas_height
+  for r in [0 .. num_rows - 1]
+    for c in [0 .. num_columns - 1]
+      ctx.fillStyle = switch getScenery(r, c)
+        when 0 then '#ffffcc'
+        when 1 then '#00ff00'
+        when 2 then '#0033ff'
+        when 3 then '#006600'
+      ctx.fillRect( c * square_width + 10
+                  , r * square_height + 10
+                  , square_width
+                  , square_height
+                  )
+  null
 
-  # entities which will be added/deleted on end of frame
-  floor_to_add = []
-  floor_to_delete = []
-  body_to_add = []
-  body_to_delete = []
+draw_debug = ->
+  ctx.fillStyle = 'white'
+  ctx.fillText "#{Math.floor(frame / 60)} | #{(frame % 60)}", 10, 410
+  ctx.fillText "Letters: #{letters}", 10, 425
+  ctx.fillText "#{apples} apples, #{bridges} bridges", 10, 440
+  ctx.fillText "Target word: #{word}", 10, 455
+  status_text =
+    if status is 'dead' then 'Dead...'
+    else if letters is word then 'Victory!'
+    else if word.indexOf(letters) is 0 then 'Playing'
+    else 'Failure...'
+  ctx.fillText status_text, 10, 470
+  null
 
-  # 'playing', 'dead', 'complete'
-  status = 'playing'
+draw_entities = ->
+  for entity in floor_entities
+    ctx.drawImage getImage(entity), entity.x + 10, entity.y + 10
+  for entity in body_entities
+    ctx.drawImage getImage(entity), entity.x + 10, entity.y + 10
+  null
 
-  canvas = $('#canvas')[0]
-  ctx = canvas.getContext('2d')
-
-  draw_scenery = ->
-    ctx.fillStyle = 'black'
-    ctx.fillRect 0, 0, canvas_width, canvas_height
-    for r in [0 .. num_rows - 1]
-      for c in [0 .. num_columns - 1]
-        ctx.fillStyle = switch getScenery(r, c)
-          when 0 then '#ffffcc'
-          when 1 then '#00ff00'
-          when 2 then '#0033ff'
-          when 3 then '#006600'
-        ctx.fillRect( c * square_width + 10
-                    , r * square_height + 10
-                    , square_width
-                    , square_height
-                    )
-    null
-
-  draw_debug = ->
-    ctx.fillStyle = 'white'
-    ctx.fillText "#{Math.floor(frame / 60)} | #{(frame % 60)}", 10, 410
-    ctx.fillText "Letters: #{letters}", 10, 425
-    ctx.fillText "#{apples} apples, #{bridges} bridges", 10, 440
-    ctx.fillText "Target word: #{word}", 10, 455
-    status_text =
-      if status is 'dead' then 'Dead...'
-      else if letters is word then 'Victory!'
-      else if word.indexOf(letters) is 0 then 'Playing'
-      else 'Failure...'
-    ctx.fillText status_text, 10, 470
-    null
-
-  draw_entities = ->
+is_occupied = (row, column, entity_to_move) ->
+  cx = column * square_width
+  ry = row * square_height
+  for entity in body_entities
+    continue if entity is entity_to_move
+    if cx - (square_width * 2) < entity.x < cx + (square_width * 2)
+      if ry - (square_height * 2) < entity.y < ry + (square_height * 2)
+        return true
+  if entity_to_move.sprite isnt 'player'
+    # Non-player body entities can't walk over floor entities
     for entity in floor_entities
-      ctx.drawImage getImage(entity), entity.x + 10, entity.y + 10
-    for entity in body_entities
-      ctx.drawImage getImage(entity), entity.x + 10, entity.y + 10
-    null
-
-  is_occupied = (row, column, entity_to_move) ->
-    for entity in body_entities
-      continue if entity is entity_to_move
-      cx = column * square_width
-      ry = row * square_height
       if cx - (square_width * 2) < entity.x < cx + (square_width * 2)
         if ry - (square_height * 2) < entity.y < ry + (square_height * 2)
           return true
-    if entity_to_move.sprite isnt 'player'
-      # Non-player body entities can't walk over floor entities
-      for entity in floor_entities
-        continue if entity is entity_to_move
-        cx = column * square_width
-        ry = row * square_height
-        if cx - (square_width * 2) < entity.x < cx + (square_width * 2)
-          if ry - (square_height * 2) < entity.y < ry + (square_height * 2)
-            return true
-    not walkable_bg(row, column)
+  not walkable_bg(row, column)
 
-  walkable_bg = (row, column) ->
-    unless row % 2 == 0
-      return walkable_bg(row - 1, column) and walkable_bg(row + 1, column)
-    unless column % 2 == 0
-      return walkable_bg(row, column - 1) and walkable_bg(row, column + 1)
-    return false if getScenery(row, column) is 2
-    return false if getScenery(row, column) is 3
-    true
-  
-  # returns [r, c] or null.
-  entity_square = (entity) ->
-    x = entity.x
-    y = entity.y
-    if x % square_width != 0
-      return null
-    if y % square_height != 0
-      return null
-    [y / square_height, x / square_width]
+walkable_bg = (row, column) ->
+  unless row % 2 == 0
+    return walkable_bg(row - 1, column) and walkable_bg(row + 1, column)
+  unless column % 2 == 0
+    return walkable_bg(row, column - 1) and walkable_bg(row, column + 1)
+  return false if getScenery(row, column) is 2
+  return false if getScenery(row, column) is 3
+  true
 
-  get_next_square = (entity, direction) ->
-    [r, c] = entity_square(entity)
-    switch direction
-      when 'left'  then [r,     c - 1]
-      when 'right' then [r,     c + 1]
-      when 'up'    then [r - 1, c    ]
-      when 'down'  then [r + 1, c    ]
+# returns [r, c] or null.
+entity_square = (entity) ->
+  x = entity.x
+  y = entity.y
+  if x % square_width != 0
+    return null
+  if y % square_height != 0
+    return null
+  [y / square_height, x / square_width]
 
-  bump = (entity) ->
-    switch entity.facing
-      when 'left'  then entity.x -= entity.speed
-      when 'right' then entity.x += entity.speed
-      when 'up'    then entity.y -= entity.speed
-      when 'down'  then entity.y += entity.speed
-    null
+get_next_square = (entity, direction) ->
+  [r, c] = entity_square(entity)
+  switch direction
+    when 'left'  then [r,     c - 1]
+    when 'right' then [r,     c + 1]
+    when 'up'    then [r - 1, c    ]
+    when 'down'  then [r + 1, c    ]
 
-  start_moving = (entity, direction) ->
-    entity.facing = direction
-    entity.state = 'moving'
-    bump entity
-    null
+bump = (entity) ->
+  switch entity.facing
+    when 'left'  then entity.x -= entity.speed
+    when 'right' then entity.x += entity.speed
+    when 'up'    then entity.y -= entity.speed
+    when 'down'  then entity.y += entity.speed
+  null
 
-  check_pickup = (x, y) ->
-    for entity in floor_entities
-      if entity.x is x and entity.y is y
-        floor_to_delete.push entity
-        switch entity.sprite
-          when 'tile'
-            letters += entity.letter
-            status = 'complete' if letters is word
-          when 'apple'  then apples++
-          when 'bridge' then bridges++
-    null
-  
-  clockwise_table =
-    up: 'right'
-    right: 'down'
-    down: 'left'
-    left: 'up'
-  clockwise = (dir) -> clockwise_table[dir]
-  
-  move_player = (entity) ->
-    # smooth movement: if you're going one dir towards a wall, you can
-    # make an instant turn by holding the turn direction before you hit
-    # the wall.
-    cw0 = entity.facing
-    cw1 = clockwise cw0
-    cw2 = clockwise cw1
-    cw3 = clockwise cw2
-    no_keys = true
-    for dir in [cw0, cw1, cw2, cw3]
-      if keys_down[dir]
-        no_keys = false
-        entity.facing = dir
-        if can_move entity, dir
-          start_moving entity, dir
-          return
-    entity.facing = cw0 if no_keys || keys_down[cw0]
-    null
-  
-  move_gazelle = (entity) ->
-    cw0 = entity.facing
-    cw1 = clockwise cw0
-    cw2 = clockwise cw1
-    cw3 = clockwise cw2
-    walls = {}
-    walled_now = false
-    for dir in ['up', 'down', 'left', 'right']
-      if not can_move entity, dir
-        walls[dir] = walled_now = true
-    if entity.walled
-      # gazelle was touching an obstacle when last moved
-      for dir in [cw1, cw0, cw3, cw2]
-        unless walls[dir]
-          start_moving entity, dir
-          break
-    else
-      for dir in [cw0, cw3, cw2, cw1]
-        unless walls[dir]
-          start_moving entity, dir
-          break
-    entity.walled = walled_now
-    null
-  
-  move_rhino = (entity) ->
-    dir = entity.facing
-    opp = clockwise clockwise dir
-    if can_move entity, dir
-      start_moving entity, dir
-    else if can_move entity, opp
-      start_moving entity, opp
-    null
+start_moving = (entity, direction) ->
+  entity.facing = direction
+  entity.state = 'moving'
+  bump entity
+  null
 
-  # Handles updating the moving/stopped state, and applying movement to
-  # position.
-  check_movement = (entity) ->
-    switch entity.state
-      when 'moving'
-        entity.was_moving = true
-        bump entity
-        if entity_square entity
-          entity.state = 'stopped'
-          check_pickup entity.x, entity.y if entity.sprite is 'player'
-      when 'stopped'
-        entity.was_moving = false
-        switch entity.sprite
-          when 'player'  then move_player  entity
-          when 'gazelle' then move_gazelle entity
-          when 'rhino'   then move_rhino   entity
-    null
+check_pickup = (x, y) ->
+  for entity in floor_entities
+    if entity.x is x and entity.y is y
+      floor_to_delete.push entity
+      switch entity.sprite
+        when 'tile'
+          letters += entity.letter
+          status = 'complete' if letters is word
+        when 'apple'  then apples++
+        when 'bridge' then bridges++
+  null
 
-  can_move = (entity, direction) ->
-    [r, c] = get_next_square(entity, direction)
-    not is_occupied(r, c, entity)
+clockwise_table =
+  up: 'right'
+  right: 'down'
+  down: 'left'
+  left: 'up'
+clockwise = (dir) -> clockwise_table[dir]
 
-  update_entities = ->
-    for entity in body_entities
-      check_movement entity
-    null
+move_player = (entity) ->
+  # smooth movement: if you're going one dir towards a wall, you can
+  # make an instant turn by holding the turn direction before you hit
+  # the wall.
+  cw0 = entity.facing
+  cw1 = clockwise cw0
+  cw2 = clockwise cw1
+  cw3 = clockwise cw2
+  no_keys = true
+  for dir in [cw0, cw1, cw2, cw3]
+    if keys_down[dir]
+      no_keys = false
+      entity.facing = dir
+      if can_move entity, dir
+        start_moving entity, dir
+        return
+  entity.facing = cw0 if no_keys || keys_down[cw0]
+  null
 
-  is_in = (x, ys) ->
-    for y in ys
-      return true if x is y
-    false
+move_gazelle = (entity) ->
+  cw0 = entity.facing
+  cw1 = clockwise cw0
+  cw2 = clockwise cw1
+  cw3 = clockwise cw2
+  walls = {}
+  walled_now = false
+  for dir in ['up', 'down', 'left', 'right']
+    if not can_move entity, dir
+      walls[dir] = walled_now = true
+  if entity.walled
+    # gazelle was touching an obstacle when last moved
+    for dir in [cw1, cw0, cw3, cw2]
+      unless walls[dir]
+        start_moving entity, dir
+        break
+  else
+    for dir in [cw0, cw3, cw2, cw1]
+      unless walls[dir]
+        start_moving entity, dir
+        break
+  entity.walled = walled_now
+  null
 
-  delete_entities = ->
-    new_floor = []
-    new_body  = []
-    for entity in floor_entities
-      unless is_in entity, floor_to_delete
-        new_floor.push entity
-    for entity in body_entities
-      unless is_in entity, body_to_delete
-        new_body.push entity
-    floor_entities  = new_floor
-    body_entities   = new_body
-    floor_to_delete = []
-    body_to_delete  = []
-    null
+move_rhino = (entity) ->
+  dir = entity.facing
+  opp = clockwise clockwise dir
+  if can_move entity, dir
+    start_moving entity, dir
+  else if can_move entity, opp
+    start_moving entity, opp
+  null
 
-  add_entities = ->
-    floor_entities = floor_entities.concat(floor_to_add)
-    body_entities  = body_entities.concat(body_to_add)
-    floor_to_add   = []
-    body_to_add    = []
-    null
-  
-  keys =
-    37: 'left'
-    38: 'up'
-    39: 'right'
-    40: 'down'
-    87: 'up'    # W
-    65: 'left'  # A
-    83: 'down'  # S
-    68: 'right' # D
+# Handles updating the moving/stopped state, and applying movement to
+# position.
+check_movement = (entity) ->
+  switch entity.state
+    when 'moving'
+      entity.was_moving = true
+      bump entity
+      if entity_square entity
+        entity.state = 'stopped'
+        check_pickup entity.x, entity.y if entity.sprite is 'player'
+    when 'stopped'
+      entity.was_moving = false
+      switch entity.sprite
+        when 'player'  then move_player  entity
+        when 'gazelle' then move_gazelle entity
+        when 'rhino'   then move_rhino   entity
+  null
+
+can_move = (entity, direction) ->
+  [r, c] = get_next_square(entity, direction)
+  not is_occupied(r, c, entity)
+
+update_entities = ->
+  for entity in body_entities
+    check_movement entity
+  null
+
+is_in = (x, ys) ->
+  for y in ys
+    return true if x is y
+  false
+
+delete_entities = ->
+  new_floor = []
+  new_body  = []
+  for entity in floor_entities
+    unless is_in entity, floor_to_delete
+      new_floor.push entity
+  for entity in body_entities
+    unless is_in entity, body_to_delete
+      new_body.push entity
+  floor_entities  = new_floor
+  body_entities   = new_body
+  floor_to_delete = []
+  body_to_delete  = []
+  null
+
+add_entities = ->
+  floor_entities = floor_entities.concat(floor_to_add)
+  body_entities  = body_entities.concat(body_to_add)
+  floor_to_add   = []
+  body_to_add    = []
+  null
+
+keys =
+  37: 'left'
+  38: 'up'
+  39: 'right'
+  40: 'down'
+  87: 'up'    # W
+  65: 'left'  # A
+  83: 'down'  # S
+  68: 'right' # D
+
+$(document).ready () ->
+
+  canvas = $('#canvas')[0]
+  ctx = canvas.getContext('2d')
 
   $(document).keydown (evt) ->
     if key = keys[evt.which]
