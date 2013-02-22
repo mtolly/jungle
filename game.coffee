@@ -12,11 +12,12 @@ num_columns   = 30
 square_width  = 16
 square_height = 16
 
-# The unchanging background of the world.
-# 0: bare
-# 1: grass
-# 2: water
-# 3: tree
+scenery_table =
+  0: 'bare'
+  1: 'grass'
+  2: 'water'
+  3: 'tree'
+
 scenery =
   [ [ 3, 3, 3, 3, 3, 3, 3, 3, 2, 3, 3, 3, 3, 3, 3 ]
   , [ 3, 3, 3, 3, 3, 3, 2, 2, 2, 0, 0, 0, 3, 3, 3 ]
@@ -32,8 +33,7 @@ scenery =
   , [ 3, 3, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 3 ]
   ]
 
-getScenery = (r, c) ->
-  scenery[Math.floor(r / 2)][Math.floor(c / 2)]
+get_scenery = (r, c) -> scenery_table[scenery[r >> 1][c >> 1]]
 
 word    = 'FIRST'
 letters = ''
@@ -123,11 +123,11 @@ draw_scenery = ->
   ctx.fillRect 0, 0, canvas_width, canvas_height
   for r in [0 .. num_rows - 1]
     for c in [0 .. num_columns - 1]
-      ctx.fillStyle = switch getScenery(r, c)
-        when 0 then '#ffffcc'
-        when 1 then '#00ff00'
-        when 2 then '#0033ff'
-        when 3 then '#006600'
+      ctx.fillStyle = switch get_scenery r, c
+        when 'bare'  then '#ffffcc'
+        when 'grass' then '#00ff00'
+        when 'water' then '#0033ff'
+        when 'tree'  then '#006600'
       ctx.fillRect( c * square_width + 10
                   , r * square_height + 10
                   , square_width
@@ -172,14 +172,13 @@ is_occupied = (row, column, entity_to_move) ->
           return true
   not walkable_bg(row, column)
 
-walkable_bg = (row, column) ->
-  unless row % 2 == 0
-    return walkable_bg(row - 1, column) and walkable_bg(row + 1, column)
-  unless column % 2 == 0
-    return walkable_bg(row, column - 1) and walkable_bg(row, column + 1)
-  return false if getScenery(row, column) is 2
-  return false if getScenery(row, column) is 3
-  true
+walkable_bg = (r, c) ->
+  unless r % 2 == 0
+    return walkable_bg(r - 1, c) and walkable_bg(r + 1, c)
+  unless c % 2 == 0
+    return walkable_bg(r, c - 1) and walkable_bg(r, c + 1)
+  scene = get_scenery r, c
+  scene isnt 'tree' and scene isnt 'water'
 
 # returns [r, c] or null.
 entity_square = (entity) ->
@@ -191,9 +190,9 @@ entity_square = (entity) ->
     return null
   [y / square_height, x / square_width]
 
-get_next_square = (entity, direction) ->
+get_next_square = (entity, dir) ->
   [r, c] = entity_square(entity)
-  switch direction
+  switch dir
     when 'left'  then [r,     c - 1]
     when 'right' then [r,     c + 1]
     when 'up'    then [r - 1, c    ]
@@ -207,8 +206,8 @@ bump = (entity) ->
     when 'down'  then entity.y += entity.speed
   null
 
-start_moving = (entity, direction) ->
-  entity.facing = direction
+start_moving = (entity, dir) ->
+  entity.facing = dir
   entity.state = 'moving'
   bump entity
   null
@@ -226,10 +225,10 @@ check_pickup = (x, y) ->
   null
 
 clockwise_table =
-  up: 'right'
+  up:    'right'
   right: 'down'
-  down: 'left'
-  left: 'up'
+  down:  'left'
+  left:  'up'
 clockwise = (dir) -> clockwise_table[dir]
 
 move_player = (entity) ->
@@ -311,7 +310,7 @@ update_entities = ->
     check_movement entity
   null
 
-is_in = (x, ys) ->
+elem = (x, ys) ->
   for y in ys
     return true if x is y
   false
@@ -320,10 +319,10 @@ delete_entities = ->
   new_floor = []
   new_body  = []
   for entity in floor_entities
-    unless is_in entity, floor_to_delete
+    unless elem entity, floor_to_delete
       new_floor.push entity
   for entity in body_entities
-    unless is_in entity, body_to_delete
+    unless elem entity, body_to_delete
       new_body.push entity
   floor_entities  = new_floor
   body_entities   = new_body
@@ -332,8 +331,8 @@ delete_entities = ->
   null
 
 add_entities = ->
-  floor_entities = floor_entities.concat(floor_to_add)
-  body_entities  = body_entities.concat(body_to_add)
+  floor_entities = floor_entities.concat floor_to_add
+  body_entities  = body_entities.concat body_to_add
   floor_to_add   = []
   body_to_add    = []
   null
@@ -351,7 +350,7 @@ keys =
 $(document).ready () ->
 
   canvas = $('#canvas')[0]
-  ctx = canvas.getContext('2d')
+  ctx = canvas.getContext '2d'
 
   $(document).keydown (evt) ->
     if key = keys[evt.which]
