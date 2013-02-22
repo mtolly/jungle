@@ -40,15 +40,16 @@ $(document).ready () ->
   bridges = 0
 
   newTile = (letter, r, c) ->
-    sprite: 'tile'
-    x: c * square_width
-    y: r * square_height
-    letter: letter
+    newFloor 'tile', r, c, letter: letter
 
-  newFloor = (sprite, r, c) ->
-    sprite: sprite
-    x: c * square_width
-    y: r * square_height
+  newFloor = (sprite, r, c, misc = {}) ->
+    obj =
+      sprite: sprite
+      x: c * square_width
+      y: r * square_height
+    for k, v of misc
+      obj[k] = v
+    obj
 
   newBody = (sprite, r, c, misc = {}) ->
     obj =
@@ -74,7 +75,7 @@ $(document).ready () ->
     ]
   body_entities =
     [ newBody('player', 10, 14)
-    , newBody('gazelle', 12, 14, {speed: 4, walled: false})
+    , newBody('gazelle', 12, 14, speed: 4, walled: false)
     ]
 
   makeImage = (src) ->

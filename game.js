@@ -21,19 +21,25 @@
     apples = 0;
     bridges = 0;
     newTile = function(letter, r, c) {
-      return {
-        sprite: 'tile',
-        x: c * square_width,
-        y: r * square_height,
+      return newFloor('tile', r, c, {
         letter: letter
-      };
+      });
     };
-    newFloor = function(sprite, r, c) {
-      return {
+    newFloor = function(sprite, r, c, misc) {
+      var k, obj, v;
+      if (misc == null) {
+        misc = {};
+      }
+      obj = {
         sprite: sprite,
         x: c * square_width,
         y: r * square_height
       };
+      for (k in misc) {
+        v = misc[k];
+        obj[k] = v;
+      }
+      return obj;
     };
     newBody = function(sprite, r, c, misc) {
       var k, obj, v;
