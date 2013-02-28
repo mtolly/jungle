@@ -12,72 +12,70 @@ num_columns   = 30
 square_width  = 16
 square_height = 16
 
-scenery_table =
-  0: 'bare'
-  1: 'grass'
-  2: 'water'
-  3: 'tree'
+makeGrid = () ->
+  rows = []
+  for i in [1 .. num_rows]
+    row = []
+    for j in [1 .. num_columns]
+      row.push null
+    rows.push row
+  rows
 
-scenery =
-  [ [ 3, 3, 3, 3, 3, 3, 3, 3, 2, 3, 3, 3, 3, 3, 3 ]
-  , [ 3, 3, 3, 3, 3, 3, 2, 2, 2, 0, 0, 0, 3, 3, 3 ]
-  , [ 3, 3, 3, 3, 3, 2, 2, 2, 0, 0, 0, 0, 0, 3, 3 ]
-  , [ 3, 3, 3, 3, 2, 2, 0, 0, 0, 0, 0, 3, 3, 3, 3 ]
-  , [ 3, 3, 3, 3, 2, 0, 0, 0, 0, 0, 0, 0, 0, 3, 3 ]
-  , [ 3, 3, 3, 3, 2, 0, 0, 0, 0, 0, 0, 0, 0, 0, 3 ]
-  , [ 3, 3, 3, 3, 2, 2, 2, 0, 0, 0, 0, 0, 0, 0, 3 ]
-  , [ 3, 3, 3, 3, 2, 2, 2, 0, 0, 0, 0, 0, 0, 0, 3 ]
-  , [ 3, 3, 3, 3, 3, 2, 2, 0, 0, 3, 3, 3, 0, 3, 3 ]
-  , [ 3, 3, 3, 3, 3, 2, 2, 2, 2, 2, 2, 3, 3, 3, 3 ]
-  , [ 3, 3, 3, 2, 2, 2, 2, 2, 2, 2, 2, 2, 3, 3, 3 ]
-  , [ 3, 3, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 3 ]
-  ]
+scenery = makeGrid()
+bodies  = makeGrid()
+pickups = makeGrid()
 
-get_scenery = (r, c) -> scenery_table[scenery[r >> 1][c >> 1]]
+body_list   = []
+pickup_list = []
 
 word    = 'FIRST'
 letters = ''
 apples  = 0
 bridges = 0
 
-newTile = (letter, r, c) ->
-  newFloor 'tile', r, c, letter: letter
-
-newFloor = (sprite, r, c, misc = {}) ->
+addPickup = (sprite, r, c, misc = {}) ->
   obj =
     sprite: sprite
     x: c * square_width
     y: r * square_height
+    r: r
+    c: c
+    width: 2
+    height: 2
+    toString: ->
+      "[pickup #{@sprite} x:#{@x} y:#{@y} r:#{@r} c:#{@c}]"
   for k, v of misc
     obj[k] = v
-  obj
+  for [r, c] in occupying obj
+    pickups[r][c] = obj
+  pickup_list.push obj
+  null
 
-newBody = (sprite, r, c, misc = {}) ->
+addTile = (letter, r, c) ->
+  addPickup 'tile', r, c, letter: letter
+  null
+
+addBody = (sprite, r, c, misc = {}) ->
   obj =
     sprite: sprite
     x: c * square_width
     y: r * square_height
+    r: r
+    c: c
+    width: 2 # in squares
+    height: 2 # in squares
     facing: 'down'
     state: 'stopped'
     speed: 2
     was_moving: false # true if was moving last frame
+    toString: ->
+      "[body #{@sprite} x:#{@x} y:#{@y} r:#{@r} c:#{@c}]"
   for k, v of misc
     obj[k] = v
-  obj
-
-# Entities are square-sized objects which can change state.
-floor_entities =
-  [ newTile('F', 6, 12)
-  , newTile('I', 4, 16)
-  , newTile('R', 4, 24)
-  , newTile('S', 12, 26)
-  , newTile('T', 16, 24)
-  , newFloor('apple', 10, 16)
-  ]
-body_entities =
-  [ newBody('player', 10, 14)
-  , newBody('gazelle', 12, 14, speed: 4, walled: false)
-  ]
+  for [r, c] in occupying obj
+    bodies[r][c] = obj
+  body_list.push obj
+  null
 
 makeImage = (src) ->
   img = new Image()
@@ -109,12 +107,6 @@ getImage = (entity) ->
 
 keys_down = {}
 
-# entities which will be added/deleted on end of frame
-floor_to_add = []
-floor_to_delete = []
-body_to_add = []
-body_to_delete = []
-
 # 'playing', 'dead', 'complete'
 status = 'playing'
 
@@ -123,7 +115,7 @@ draw_scenery = ->
   ctx.fillRect 0, 0, canvas_width, canvas_height
   for r in [0 .. num_rows - 1]
     for c in [0 .. num_columns - 1]
-      ctx.fillStyle = switch get_scenery r, c
+      ctx.fillStyle = switch scenery[r][c]
         when 'bare'  then '#ffffcc'
         when 'grass' then '#00ff00'
         when 'water' then '#0033ff'
@@ -150,53 +142,20 @@ draw_debug = ->
   null
 
 draw_entities = ->
-  for entity in floor_entities
+  for entity in pickup_list
     ctx.drawImage getImage(entity), entity.x + 10, entity.y + 10
-  for entity in body_entities
+  for entity in body_list
     ctx.drawImage getImage(entity), entity.x + 10, entity.y + 10
   null
 
-is_occupied = (row, column, entity_to_move) ->
-  cx = column * square_width
-  ry = row * square_height
-  for entity in body_entities
-    continue if entity is entity_to_move
-    if cx - (square_width * 2) < entity.x < cx + (square_width * 2)
-      if ry - (square_height * 2) < entity.y < ry + (square_height * 2)
-        return true
-  if entity_to_move.sprite isnt 'player'
-    # Non-player body entities can't walk over floor entities
-    for entity in floor_entities
-      if cx - (square_width * 2) < entity.x < cx + (square_width * 2)
-        if ry - (square_height * 2) < entity.y < ry + (square_height * 2)
-          return true
-  not walkable_bg(row, column)
-
 walkable_bg = (r, c) ->
-  unless r % 2 == 0
-    return walkable_bg(r - 1, c) and walkable_bg(r + 1, c)
-  unless c % 2 == 0
-    return walkable_bg(r, c - 1) and walkable_bg(r, c + 1)
-  scene = get_scenery r, c
-  scene isnt 'tree' and scene isnt 'water'
+  scene = scenery[r][c]
+  scene is 'bare' or scene is 'grass'
 
-# returns [r, c] or null.
-entity_square = (entity) ->
-  x = entity.x
-  y = entity.y
-  if x % square_width != 0
-    return null
-  if y % square_height != 0
-    return null
-  [y / square_height, x / square_width]
-
-get_next_square = (entity, dir) ->
-  [r, c] = entity_square(entity)
-  switch dir
-    when 'left'  then [r,     c - 1]
-    when 'right' then [r,     c + 1]
-    when 'up'    then [r - 1, c    ]
-    when 'down'  then [r + 1, c    ]
+is_occupied = (r, c, entity_to_move) ->
+  return true unless bodies[r][c] in [null, entity_to_move]
+  return true if (entity_to_move.sprite isnt 'player') && pickups[r][c]
+  not walkable_bg r, c
 
 bump = (entity) ->
   switch entity.facing
@@ -210,18 +169,22 @@ start_moving = (entity, dir) ->
   entity.facing = dir
   entity.state = 'moving'
   bump entity
+  for [r, c] in occupying entity
+    bodies[r][c] = entity
   null
 
-check_pickup = (x, y) ->
-  for entity in floor_entities
-    if entity.x is x and entity.y is y
-      floor_to_delete.push entity
-      switch entity.sprite
-        when 'tile'
-          letters += entity.letter
-          status = 'complete' if letters is word
-        when 'apple'  then apples++
-        when 'bridge' then bridges++
+check_pickup = (r, c) ->
+  if pickup = pickups[r][c]
+    return unless pickup.r is r and pickup.c is c
+    for [r, c] in occupying pickup
+      pickups[r][c] = null
+    pickup_list = (p for p in pickup_list when p isnt pickup)
+    switch pickup.sprite
+      when 'tile'
+        letters += pickup.letter
+        status = 'complete' if letters is word
+      when 'apple'  then apples++
+      when 'bridge' then bridges++
   null
 
 clockwise_table =
@@ -230,6 +193,36 @@ clockwise_table =
   down:  'left'
   left:  'up'
 clockwise = (dir) -> clockwise_table[dir]
+
+occupying = (entity) ->
+  top = entity.y
+  bottom = top + entity.height * square_height
+  left = entity.x
+  right = left + entity.width * square_width
+  top_row = Math.floor(top / square_height)
+  bottom_row = Math.ceil(bottom / square_height) - 1
+  left_column = Math.floor(left / square_width)
+  right_column = Math.ceil(right / square_width) - 1
+  squares = []
+  for r in [top_row .. bottom_row]
+    for c in [left_column .. right_column]
+      squares.push [r, c]
+  squares
+
+copy = (entity) ->
+  speed: entity.speed
+  x: entity.x
+  y: entity.y
+  height: entity.height
+  width: entity.width
+
+can_move = (entity, dir) ->
+  entity_copy = copy entity
+  entity_copy.facing = dir
+  bump entity_copy
+  for [r, c] in occupying entity_copy
+    return false if is_occupied r, c, entity
+  true
 
 move_player = (entity) ->
   # smooth movement: if you're going one dir towards a wall, you can
@@ -283,16 +276,26 @@ move_rhino = (entity) ->
     start_moving entity, opp
   null
 
+try_align = (entity) ->
+  if entity.x % square_width is 0 and entity.y % square_height is 0
+    entity.c = Math.floor(entity.x / square_width)
+    entity.r = Math.floor(entity.y / square_height)
+    return true
+  false
+
 # Handles updating the moving/stopped state, and applying movement to
 # position.
 check_movement = (entity) ->
   switch entity.state
     when 'moving'
       entity.was_moving = true
+      was_occupying = occupying entity
       bump entity
-      if entity_square entity
+      if try_align entity
         entity.state = 'stopped'
-        check_pickup entity.x, entity.y if entity.sprite is 'player'
+        bodies[r][c] = null for [r, c] in was_occupying
+        bodies[r][c] = entity for [r, c] in occupying entity
+        check_pickup entity.r, entity.c if entity.sprite is 'player'
     when 'stopped'
       entity.was_moving = false
       switch entity.sprite
@@ -301,12 +304,8 @@ check_movement = (entity) ->
         when 'rhino'   then move_rhino   entity
   null
 
-can_move = (entity, direction) ->
-  [r, c] = get_next_square(entity, direction)
-  not is_occupied(r, c, entity)
-
 update_entities = ->
-  for entity in body_entities
+  for entity in body_list
     check_movement entity
   null
 
@@ -314,28 +313,6 @@ elem = (x, ys) ->
   for y in ys
     return true if x is y
   false
-
-delete_entities = ->
-  new_floor = []
-  new_body  = []
-  for entity in floor_entities
-    unless elem entity, floor_to_delete
-      new_floor.push entity
-  for entity in body_entities
-    unless elem entity, body_to_delete
-      new_body.push entity
-  floor_entities  = new_floor
-  body_entities   = new_body
-  floor_to_delete = []
-  body_to_delete  = []
-  null
-
-add_entities = ->
-  floor_entities = floor_entities.concat floor_to_add
-  body_entities  = body_entities.concat body_to_add
-  floor_to_add   = []
-  body_to_add    = []
-  null
 
 keys =
   37: 'left'
@@ -371,19 +348,60 @@ $(document).ready () ->
     (callback) ->
       window.setTimeout callback, 1000 / 60
   )()
+  
+  # load level
+  
+  level_table =
+    0: 'bare'
+    1: 'grass'
+    2: 'water'
+    3: 'tree'
+  level =
+    [ [ 3, 3, 3, 3, 3, 3, 3, 3, 2, 3, 3, 3, 3, 3, 3 ]
+    , [ 3, 3, 3, 3, 3, 3, 2, 2, 2, 0, 0, 0, 3, 3, 3 ]
+    , [ 3, 3, 3, 3, 3, 2, 2, 2, 0, 0, 0, 0, 0, 3, 3 ]
+    , [ 3, 3, 3, 3, 2, 2, 0, 0, 0, 0, 0, 3, 3, 3, 3 ]
+    , [ 3, 3, 3, 3, 2, 0, 0, 0, 0, 0, 0, 0, 0, 3, 3 ]
+    , [ 3, 3, 3, 3, 2, 0, 0, 0, 0, 0, 0, 0, 0, 0, 3 ]
+    , [ 3, 3, 3, 3, 2, 2, 2, 0, 0, 0, 0, 0, 0, 0, 3 ]
+    , [ 3, 3, 3, 3, 2, 2, 2, 0, 0, 0, 0, 0, 0, 0, 3 ]
+    , [ 3, 3, 3, 3, 3, 2, 2, 0, 0, 3, 3, 3, 0, 3, 3 ]
+    , [ 3, 3, 3, 3, 3, 2, 2, 2, 2, 2, 2, 3, 3, 3, 3 ]
+    , [ 3, 3, 3, 2, 2, 2, 2, 2, 2, 2, 2, 2, 3, 3, 3 ]
+    , [ 3, 3, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 3 ]
+    ]
+  for row, r in level
+    for val, c in row
+      r2 = r * 2
+      c2 = c * 2
+      str = level_table[val]
+      scenery[r2][c2] = scenery[r2][c2 + 1] =
+      scenery[r2 + 1][c2] = scenery[r2 + 1][c2 + 1] = level_table[val]
+
+  addTile 'F', 6, 12
+  addTile 'I', 4, 16
+  addTile 'R', 4, 24
+  addTile 'S', 12, 26
+  addTile 'T', 16, 24
+  addPickup 'apple', 10, 16
+
+  addBody 'player', 10, 14
+  addBody 'gazelle', 12, 14, speed: 4, walled: false
+  
+  # game loop
 
   (animloop = ->
     requestAnimFrame animloop
-    frame++
-    anim_subframe++
-    if anim_subframe is 5
-      anim_subframe = 0
-      anim_frame = (anim_frame + 1) % 4
-    draw_scenery()
-    draw_debug()
-    draw_entities()
-    update_entities()
-    delete_entities()
-    add_entities()
+    if $('#running')[0].checked
+      frame++
+      anim_subframe++
+      if anim_subframe is 5
+        anim_subframe = 0
+        anim_frame = (anim_frame + 1) % 4
+      draw_scenery()
+      draw_debug()
+      draw_entities()
+      update_entities()
+      $('#debug')[0].innerHTML = "#{body_list}<br />#{pickup_list}"
     null
   )()
