@@ -1,26 +1,33 @@
 <html>
 
 <head>
-<script src="http://ajax.googleapis.com/ajax/libs/jquery/1.7.1/jquery.min.js" type="text/javascript"></script>
-<script type="text/javascript" src="game.js"></script>
+<script src="http://ajax.googleapis.com/ajax/libs/jquery/1.7.1/jquery.min.js"
+  type="text/javascript"></script>
+<script type="text/javascript" src="Jungle.js"></script>
+<script type="text/javascript">
+$(document).ready(function(){
+  window.requestAnimFrame = (function(){
+    return  window.requestAnimationFrame       ||
+            window.webkitRequestAnimationFrame ||
+            window.mozRequestAnimationFrame    ||
+            window.oRequestAnimationFrame      ||
+            window.msRequestAnimationFrame     ||
+            function( callback ){
+              window.setTimeout(callback, 1000 / 60);
+            };
+  })();
+  
+  jungle = new Jungle($('#canvas')[0]);
+  (animloop = function(){
+    requestAnimFrame(animloop);
+    jungle.draw_scenery();
+  })();
+});
+</script>
 </head>
 
 <body>
-<canvas id="canvas" width="640" height="480"></canvas>
-
-<form>
-<p>
-<input type="checkbox" id="running" checked="true" />
-<label for="running">Running</label>
-</p>
-</form>
-
-<p id="debug">
-</p>
-
-<p id="log">
-</p>
-
+<canvas id="canvas" width="640" height="480" />
 </body>
 
 </html>
