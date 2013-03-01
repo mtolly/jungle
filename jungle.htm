@@ -5,6 +5,17 @@
   type="text/javascript"></script>
 <script type="text/javascript" src="Jungle.js"></script>
 <script type="text/javascript">
+keys =
+  { 37: 'left'
+  , 38: 'up'
+  , 39: 'right'
+  , 40: 'down'
+  , 87: 'up'    // W
+  , 65: 'left'  // A
+  , 83: 'down'  // S
+  , 68: 'right' // D
+  };
+
 $(document).ready(function(){
   window.requestAnimFrame = (function(){
     return  window.requestAnimationFrame       ||
@@ -17,13 +28,27 @@ $(document).ready(function(){
             };
   })();
   
-  jungle = new Jungle($('#canvas')[0]);
-  jungle.new_body(0, 0, 'player');
+  var jungle = new Jungle($('#canvas')[0]);
+  jungle.new_body(4, 4, Player);
+  jungle.new_body(8, 8, Gazelle);
   jungle.loadImages();
+  
+  $(document).keydown(function(evt){
+    if (key = keys[evt.which]) {
+      jungle.press_key(key);
+    }
+  });
+  
+  $(document).keyup(function(evt){
+    if (key = keys[evt.which]) {
+      jungle.release_key(key);
+    }
+  });
+  
   (animloop = function(){
     requestAnimFrame(animloop);
+    jungle.advance();
     jungle.draw();
-    
   })();
 });
 </script>
