@@ -7,25 +7,94 @@ makeGrid = (rows, columns, fill) ->
     grid.push row
   grid
 
+dirs = ['up', 'down', 'left', 'right']
+
+images = {}
+
+# Loads a set of images, and waits until they are all loaded.
+loadImages = (urls) ->
+  new_urls = (url for url in urls when not images[url])
+  todo = new_urls.length
+  for url in new_urls
+    img = new Image()
+    img.src = url
+    images[url] = img
+    img.onload = () ->
+      todo--
+  #null until todo is 0
+  null
+
 class Body
-  constructor: (@sprite, @x, @y, misc = {}) ->
+  constructor: (@jungle, @sprite, @x, @y, misc = {}) ->
     @width  = misc.width  ? 2 # in squares
     @height = misc.height ? 2 # in squares
+    @facing = misc.facing ? 'down'
+    @state  = misc.state  ? 'stopped'
+    @was_moving = misc.was_moving ? false
   
-  occupying: (jungle) ->
+  # An array of [r, c] that this body is currently occupying.
+  occupying: () ->
+    sq_height = @jungle.square_height
+    sq_width  = @jungle.square_width
     top_y    = @y
-    bottom_y = top_y + @height * jungle.square_height
+    bottom_y = top_y + @height * sq_height
     left_x   = @x
-    right_x  = left_x + @width * jungle.square_width
-    top_row      = Math.floor(top_y / jungle.square_height)
-    bottom_row   = Math.ceil(bottom_y / jungle.square_height) - 1
-    left_column  = Math.floor(left_x / jungle.square_width)
-    right_column = Math.ceil(right_x / jungle.square_width) - 1
+    right_x  = left_x + @width * sq_width
+    top_row      = Math.floor(top_y / sq_height)
+    bottom_row   = Math.ceil(bottom_y / sq_height) - 1
+    left_column  = Math.floor(left_x / sq_width)
+    right_column = Math.ceil(right_x / sq_width) - 1
     squares = []
     for r in [top_row .. bottom_row]
       for c in [left_column .. right_column]
         squares.push [r, c]
     squares
+  
+  # An array of all the possible URLs imageURL() could return for this body.
+  imageURLs: () ->
+    sprite = @sprite
+    switch sprite
+      when 'dartdemon'
+        "img/dartdemon/#{dir}.png" for dir in dirs
+      else
+        urls = []
+        for dir in dirs
+          urls.push "img/#{sprite}/stopped/#{dir}.png"
+          for i in [0..3]
+            urls.push "img/#{sprite}/moving/#{dir}/#{i}.png"
+        urls
+  
+  loadImages: () ->
+    loadImages @imageURLs()
+  
+  # The current image for this body.
+  imageURL: () ->
+    sprite = @sprite
+    switch sprite
+      when 'dartdemon'
+        "img/dartdemon/#{@facing}.png"
+      else switch (if @was_moving then 'moving' else @state)
+        when 'stopped'
+          "img/#{sprite}/stopped/#{@facing}.png"
+        when 'moving'
+          "img/#{sprite}/moving/#{@facing}/#{@jungle.anim_frame}.png"
+  
+  draw: () ->
+    j = @jungle
+    j.ctx.drawImage(images[@imageURL()], @x + j.x_offset, @y + j.y_offset)
+  
+  # Adds this body to each cell it is currently occupying.
+  mark: () ->
+    bodies = @jungle.bodies
+    for [r, c] in @occupying()
+      cell = bodies[r][c]
+      cell.push this unless this in cell
+  
+  # Removes this body from every cell it is currently occupying.
+  unmark: () ->
+    bodies = @jungle.bodies
+    for [r, c] in @occupying()
+      bodies[r][c] = body for body in bodies[r][c] where body isnt this
 
 class Jungle
   constructor: (@canvas, misc = {}) ->
@@ -43,7 +112,7 @@ class Jungle
     @anim_subframe = 0 # 0 -> 1 -> 2 -> 3 -> 4 -> 0, every frame
     
     @scenery = makeGrid(r, c, 'bare')
-    @pickups = makeGrid(r, c, [])
+    @pickups = makeGrid(r, c, null)
     @bodies  = makeGrid(r, c, [])
     
     @pickup_list = []
@@ -83,13 +152,26 @@ class Jungle
     null
   
   draw_pickups: ->
-    # TODO
+    pickup.draw() for pickup in @pickup_list
+    null
   
   draw_bodies: ->
-    # TODO
+    body.draw() for body in @body_list
+    null
   
   set_scenery: (r, c, val) ->
     @scenery[r][c] = val
+    null
+  
+  new_body: (r, c, sprite) ->
+    body = new Body(this, sprite, c * @square_width, r * @square_height)
+    @body_list.push body
+    body.mark
+    null
+  
+  loadImages: () ->
+    body.loadImages() for body in @body_list
+    pickup.loadImages() for pickup in @pickup_list
     null
 
 # export the Jungle class

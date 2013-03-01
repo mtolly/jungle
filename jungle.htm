@@ -18,9 +18,12 @@ $(document).ready(function(){
   })();
   
   jungle = new Jungle($('#canvas')[0]);
+  jungle.new_body(0, 0, 'player');
+  jungle.loadImages();
   (animloop = function(){
     requestAnimFrame(animloop);
-    jungle.draw_scenery();
+    jungle.draw();
+    
   })();
 });
 </script>
